@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  ngala-api:
+    build:
+      context: ./backend
+      dockerfile: API/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5000
+      ConnectionStrings__DefaultConnection: Data Source=/data/ngala-farms.db
+      JwtSettings__SecretKey: ${JWT_SECRET:-NgalaFarmsSecretKey2026!PalmOilAndCattleXAF!}
+    volumes:
+      - ngala-data:/data
+    networks:
+      - ngala-network
+
+  ngala-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - ngala-api
+    networks:
+      - ngala-network
+
+volumes:
+  ngala-data:
+
+networks:
+  ngala-network:
+    driver: bridge

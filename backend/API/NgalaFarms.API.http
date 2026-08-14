@@ -1,0 +1,6 @@
+@NgalaFarms.API_HostAddress = http://localhost:5156
+
+GET {{NgalaFarms.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
