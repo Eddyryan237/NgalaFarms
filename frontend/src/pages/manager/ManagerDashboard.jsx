@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, TrendingUp } from 'lucide-react'
+import { AlertCircle, TrendingUp, Plus } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import apiClient from '../../lib/api'
 
 export default function ManagerDashboard()
@@ -7,6 +8,12 @@ export default function ManagerDashboard()
     const { data } = useQuery({
         queryKey: ['manager-dashboard'],
         queryFn: () => apiClient.get('/dashboard/manager').then(r => r.data)
+    })
+
+    const { data: recentOperations = [] } = useQuery({
+        queryKey: ['daily-operations'],
+        queryFn: () => apiClient.get('/daily-operations').then(r => r.data),
+        select: (data) => data.slice(0, 5)
     })
 
     const dashboard = data || {}
@@ -72,6 +79,13 @@ export default function ManagerDashboard()
                 <div className="card bg-gradient-to-br from-palm-50 to-earth-50">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="space-y-2">
+                        <Link
+                            to="/manager/daily-operations"
+                            className="w-full text-left px-3 py-2 text-sm bg-white rounded hover:bg-gray-50 flex items-center gap-2"
+                        >
+                            <Plus size={16} />
+                            + Daily Operations
+                        </Link>
                         <button className="w-full text-left px-3 py-2 text-sm bg-white rounded hover:bg-gray-50">
                             + Record Harvest
                         </button>

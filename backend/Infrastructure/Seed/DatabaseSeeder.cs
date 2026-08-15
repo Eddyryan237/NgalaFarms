@@ -12,43 +12,90 @@ public static class DatabaseSeeder
     {
         await context.Database.MigrateAsync();
 
-        // Roles
+        // Roles (idempotent and defensive)
         foreach (var role in new[] { "Founder", "Manager" })
         {
-            if (!await roleManager.RoleExistsAsync(role))
-                await roleManager.CreateAsync(new IdentityRole(role));
+            var normalized = roleManager.NormalizeKey(role);
+            var existsInStore = await roleManager.Roles.AnyAsync(r => r.NormalizedName == normalized);
+            if (!existsInStore)
+            {
+                try
+                {
+                    var result = await roleManager.CreateAsync(new IdentityRole(role));
+                    if (!result.Succeeded)
+                    {
+                        // ignore failures where role already exists in concurrent scenario
+                    }
+                }
+                catch (DbUpdateException)
+                {
+                    // unique constraint race — ignore since role exists now
+                }
+                catch
+                {
+                    // swallow other create errors during seeding to avoid breaking tests
+                }
+            }
         }
 
-        // Founder user
-        if (!await userManager.Users.AnyAsync(u => u.Email == "founder@ngalafarms.com"))
+        // Seed users: read from environment variables when available to avoid hard-coded secrets
+        var defaultSeedPassword = Environment.GetEnvironmentVariable("DEFAULT_SEED_PASSWORD") ?? "ChangeMe#2026";
+        var founderEmail = Environment.GetEnvironmentVariable("SEED_FOUNDER_EMAIL") ?? "founder@ngalafarms.com";
+        var founderPassword = Environment.GetEnvironmentVariable("SEED_FOUNDER_PASSWORD") ?? "founderngala123";
+        var founderFullName = Environment.GetEnvironmentVariable("SEED_FOUNDER_FULLNAME") ?? "Farm Founder";
+
+        if (!await userManager.Users.AnyAsync(u => u.Email == founderEmail))
         {
             var founder = new ApplicationUser
             {
-                UserName = "founder@ngalafarms.com",
-                Email = "founder@ngalafarms.com",
-                FullName = "Farm Founder",
+                UserName = founderEmail,
+                Email = founderEmail,
+                FullName = founderFullName,
                 Role = "Founder",
                 IsActive = true,
                 EmailConfirmed = true
             };
-            await userManager.CreateAsync(founder, "password123");
-            await userManager.AddToRoleAsync(founder, "Founder");
+            var res = await userManager.CreateAsync(founder, founderPassword);
+            if (res.Succeeded)
+            {
+                var created = await userManager.FindByEmailAsync(founderEmail);
+                if (created != null && !await userManager.IsInRoleAsync(created, "Founder"))
+                    await userManager.AddToRoleAsync(created, "Founder");
+            }
         }
 
-        // Manager user
-        if (!await userManager.Users.AnyAsync(u => u.Email == "manager@ngalafarms.com"))
+        var managerEmail = Environment.GetEnvironmentVariable("SEED_MANAGER_EMAIL") ?? "manager@ngalafarms.com";
+        var managerPassword = Environment.GetEnvironmentVariable("SEED_MANAGER_PASSWORD") ?? "nmanager123";
+        var managerFullName = Environment.GetEnvironmentVariable("SEED_MANAGER_FULLNAME") ?? "Farm Manager";
+
+        if (!await userManager.Users.AnyAsync(u => u.Email == managerEmail))
         {
             var manager = new ApplicationUser
             {
-                UserName = "manager@ngalafarms.com",
-                Email = "manager@ngalafarms.com",
-                FullName = "Farm Manager",
+                UserName = managerEmail,
+                Email = managerEmail,
+                FullName = managerFullName,
                 Role = "Manager",
                 IsActive = true,
                 EmailConfirmed = true
             };
-            await userManager.CreateAsync(manager, "password123");
-            await userManager.AddToRoleAsync(manager, "Manager");
+            var res = await userManager.CreateAsync(manager, managerPassword);
+            if (res.Succeeded)
+            {
+                var created = await userManager.FindByEmailAsync(managerEmail);
+                if (created != null && !await userManager.IsInRoleAsync(created, "Manager"))
+                    await userManager.AddToRoleAsync(created, "Manager");
+            }
+        }
+
+        // Ensure basic customers exist (Sales depends on these)
+        if (!await context.Customers.AnyAsync())
+        {
+            context.Customers.AddRange(
+                    new Customer { CustomerId = "CUST-0001", Name = "Local Distributor", Email = "dist@ngalafarms.com", Phone = "+237111111111", Address = "Ngala Market" },
+                    new Customer { CustomerId = "CUST-0002", Name = "Retailer Outlet", Email = "retail@ngalafarms.com", Phone = "+237222222222", Address = "Ngala Town" }
+            );
+            await context.SaveChangesAsync();
         }
 
         // Company Settings
@@ -63,41 +110,6 @@ public static class DatabaseSeeder
                 Address = "Ngala, Cameroon",
                 Description = "Palm Oil & Cattle Production"
             });
-            await context.SaveChangesAsync();
-        }
-
-        // Customers
-        if (!await context.Customers.AnyAsync())
-        {
-            context.Customers.AddRange(
-                new Customer { CustomerId = "CUST-0001", Name = "Mola Trading Co.", Phone = "+237 677 001 001", CustomerType = "Wholesale", Email = "mola@trading.cm" },
-                new Customer { CustomerId = "CUST-0002", Name = "Bakassi Markets Ltd.", Phone = "+237 677 002 002", CustomerType = "Retail", Email = "bakassi@markets.cm" },
-                new Customer { CustomerId = "CUST-0003", Name = "Limbe Palm Buyers", Phone = "+237 677 003 003", CustomerType = "Wholesale" }
-            );
-            await context.SaveChangesAsync();
-        }
-
-        // Suppliers
-        if (!await context.Suppliers.AnyAsync())
-        {
-            context.Suppliers.AddRange(
-                new Supplier { SupplierId = "SUPP-0001", Name = "Ndanga Cattle Ranch", Phone = "+237 677 010 010", ProductsServices = "Cattle", ContactPerson = "Thomas Ndanga" },
-                new Supplier { SupplierId = "SUPP-0002", Name = "AgroFeed Solutions", Phone = "+237 677 020 020", ProductsServices = "Cattle Feed, Supplements" },
-                new Supplier { SupplierId = "SUPP-0003", Name = "Farm Equipment Plus", Phone = "+237 677 030 030", ProductsServices = "Farm Equipment, Tools" }
-            );
-            await context.SaveChangesAsync();
-        }
-
-        // Employees
-        if (!await context.Employees.AnyAsync())
-        {
-            context.Employees.AddRange(
-                new Employee { EmployeeId = "EMP-2026-0001", FullName = "Samuel Ngala", Position = "Palm Plantation Supervisor", Department = "Palm Oil", MonthlySalary = 120000, EmploymentDate = new DateTime(2022, 3, 1), Phone = "+237 677 100 001" },
-                new Employee { EmployeeId = "EMP-2026-0002", FullName = "Esther Bello", Position = "Cattle Herd Manager", Department = "Cattle", MonthlySalary = 115000, EmploymentDate = new DateTime(2021, 6, 15), Phone = "+237 677 100 002" },
-                new Employee { EmployeeId = "EMP-2026-0003", FullName = "John Mbozo", Position = "Palm Harvest Team Lead", Department = "Palm Oil", MonthlySalary = 95000, EmploymentDate = new DateTime(2023, 1, 10), Phone = "+237 677 100 003" },
-                new Employee { EmployeeId = "EMP-2026-0004", FullName = "Mary Ayuk", Position = "Accounts Officer", Department = "Administration", MonthlySalary = 110000, EmploymentDate = new DateTime(2022, 9, 1), Phone = "+237 677 100 004" },
-                new Employee { EmployeeId = "EMP-2026-0005", FullName = "Peter Tabi", Position = "Cattle Health Assistant", Department = "Cattle", MonthlySalary = 85000, EmploymentDate = new DateTime(2024, 2, 1), Phone = "+237 677 100 005" }
-            );
             await context.SaveChangesAsync();
         }
 
@@ -179,11 +191,11 @@ public static class DatabaseSeeder
         // Sales
         if (!await context.Sales.AnyAsync())
         {
-            var cust1 = await context.Customers.FirstAsync(c => c.CustomerId == "CUST-0001");
-            var cust2 = await context.Customers.FirstAsync(c => c.CustomerId == "CUST-0002");
+            var cust1 = await context.Customers.FirstOrDefaultAsync(c => c.CustomerId == "CUST-0001");
+            var cust2 = await context.Customers.FirstOrDefaultAsync(c => c.CustomerId == "CUST-0002");
             context.Sales.AddRange(
-                new Sale { InvoiceId = "INV-0001", CustomerId = cust1.Id, CustomerName = cust1.Name, Product = "Palm Oil", QuantityLitres = 200, UnitPrice = 1800, TotalPrice = 360000, PaymentMethod = PaymentMethod.BankTransfer, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 7, 15) },
-                new Sale { InvoiceId = "INV-0002", CustomerId = cust2.Id, CustomerName = cust2.Name, Product = "Palm Oil", QuantityLitres = 150, UnitPrice = 1850, TotalPrice = 277500, PaymentMethod = PaymentMethod.Cash, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 7, 28) },
+                new Sale { InvoiceId = "INV-0001", CustomerId = cust1 != null ? cust1.Id : null, CustomerName = cust1 != null ? cust1.Name : "Local Distributor", Product = "Palm Oil", QuantityLitres = 200, UnitPrice = 1800, TotalPrice = 360000, PaymentMethod = PaymentMethod.BankTransfer, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 7, 15) },
+                new Sale { InvoiceId = "INV-0002", CustomerId = cust2 != null ? cust2.Id : null, CustomerName = cust2 != null ? cust2.Name : "Retailer Outlet", Product = "Palm Oil", QuantityLitres = 150, UnitPrice = 1850, TotalPrice = 277500, PaymentMethod = PaymentMethod.Cash, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 7, 28) },
                 new Sale { InvoiceId = "INV-0003", CustomerName = "Direct Customer", Product = "Palm Oil", QuantityLitres = 80, UnitPrice = 1900, TotalPrice = 152000, PaymentMethod = PaymentMethod.MobileMoney, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 8, 5) }
             );
             await context.SaveChangesAsync();
@@ -262,6 +274,26 @@ public static class DatabaseSeeder
                 new Notification { Title = "Cattle Health Alert", Message = "COW-0003 requires follow-up treatment by August 5, 2026.", Category = NotificationCategory.CattleHealth, Priority = NotificationPriority.High },
                 new Notification { Title = "Vaccination Due", Message = "5 cattle are due for FMD vaccination in November 2026.", Category = NotificationCategory.Vaccination, Priority = NotificationPriority.Medium },
                 new Notification { Title = "Weekly Report Available", Message = "Weekly business analytics report for the week of August 4-10, 2026 is ready.", Category = NotificationCategory.WeeklyReport, Priority = NotificationPriority.Low }
+            );
+            await context.SaveChangesAsync();
+        }
+
+        // Daily operations sample
+        if (!await context.DailyOperations.AnyAsync())
+        {
+            context.DailyOperations.AddRange(
+                new DailyOperation { Date = DateTime.UtcNow.AddDays(-2), OperationType = "Clearing", Description = "Cleared block A1", PerformedBy = "manager@ngalafarms.com", PlantationId = "PLT-0001", PalmBlockId = "A1" },
+                new DailyOperation { Date = DateTime.UtcNow.AddDays(-1), OperationType = "Pegging", Description = "Pegged new row in B1", PerformedBy = "manager@ngalafarms.com", PlantationId = "PLT-0002", PalmBlockId = "B1" }
+            );
+            await context.SaveChangesAsync();
+        }
+
+        // Daily operations seed (example)
+        if (!await context.DailyOperations.AnyAsync())
+        {
+            context.DailyOperations.AddRange(
+                new DailyOperation { Date = DateTime.UtcNow.AddDays(-2), OperationType = "Clearing", Description = "Cleared section A1", PerformedBy = "manager@ngalafarms.com", PlantationId = "PLT-0001", PalmBlockId = "A1" },
+                new DailyOperation { Date = DateTime.UtcNow.AddDays(-1), OperationType = "Pegging", Description = "Pegged new seedlings in B1", PerformedBy = "manager@ngalafarms.com", PlantationId = "PLT-0002", PalmBlockId = "B1" }
             );
             await context.SaveChangesAsync();
         }

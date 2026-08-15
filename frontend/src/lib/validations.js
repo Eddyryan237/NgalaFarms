@@ -27,11 +27,12 @@ export const salesSchema = z.object({
 })
 
 export const expenseSchema = z.object({
-    division: z.enum(['Palm Oil Production', 'Cattle Management', 'General', 'Operations', 'Maintenance'], 'Division is required'),
+    division: z.number().min(0, 'Division is required'),
     category: z.string().min(1, 'Category is required'),
     amount: z.number().min(0.01, 'Amount must be greater than 0'),
-    expenseDate: z.string().min(1, 'Expense date is required'),
-    description: z.string().min(1, 'Description is required')
+    date: z.string().min(1, 'Expense date is required'),
+    description: z.string().min(1, 'Description is required'),
+    paymentMethod: z.number().min(0, 'Payment method is required')
 })
 
 export const processingSchema = z.object({

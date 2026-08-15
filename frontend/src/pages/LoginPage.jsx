@@ -105,12 +105,6 @@ export default function LoginPage()
                         Sign In
                     </button>
                 </form>
-
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded text-sm text-gray-600">
-                    <p className="font-medium mb-2">Demo Credentials:</p>
-                    <p><strong>Founder:</strong> founder@ngalafarms.com / password123</p>
-                    <p><strong>Manager:</strong> manager@ngalafarms.com / password123</p>
-                </div>
             </div>
         </div>
     )

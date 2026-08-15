@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk"> 
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.18" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+    <PackageReference Include="FluentAssertions" Version="7.1.0" />
+    <PackageReference Include="coverlet.collector" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\API\NgalaFarms.API.csproj"/>
+    <ProjectReference Include="..\..\Infrastructure\NgalaFarms.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\Application\NgalaFarms.Application.csproj"/>
+    <ProjectReference Include="..\..\Domain\NgalaFarms.Domain.csproj"/>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+</Project>

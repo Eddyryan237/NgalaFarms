@@ -22,6 +22,7 @@ public class NgalaFarmsDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<StockTransaction> StockTransactions => Set<StockTransaction>();
     public DbSet<Sale> Sales => Set<Sale>();
     public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<Production> Productions => Set<Production>();
     public DbSet<Cattle> Cattle => Set<Cattle>();
     public DbSet<CattleHealthRecord> CattleHealthRecords => Set<CattleHealthRecord>();
     public DbSet<CattleVaccination> CattleVaccinations => Set<CattleVaccination>();
@@ -32,6 +33,7 @@ public class NgalaFarmsDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<WeeklyReport> WeeklyReports => Set<WeeklyReport>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<DailyOperation> DailyOperations => Set<DailyOperation>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -52,6 +54,7 @@ public class NgalaFarmsDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Expense>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Cattle>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Notification>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<DailyOperation>().HasQueryFilter(e => !e.IsDeleted);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

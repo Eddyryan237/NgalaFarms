@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NgalaFarms.Infrastructure.Data;
 
@@ -10,9 +11,11 @@ using NgalaFarms.Infrastructure.Data;
 namespace NgalaFarms.Infrastructure.Migrations
 {
     [DbContext(typeof(NgalaFarmsDbContext))]
-    partial class NgalaFarmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260814102710_AddProduction")]
+    partial class AddProduction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.7");
@@ -712,47 +715,6 @@ namespace NgalaFarms.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("NgalaFarms.Domain.Entities.DailyOperation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("OperationType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PalmBlockId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PerformedBy")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PlantationId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DailyOperations");
                 });
 
             modelBuilder.Entity("NgalaFarms.Domain.Entities.Employee", b =>

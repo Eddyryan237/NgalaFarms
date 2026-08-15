@@ -51,10 +51,12 @@ export default function Sidebar({ isFounder })
                     </>
                 ) : (
                     <>
-                        <div className="text-xs font-semibold text-gray-500 px-4 py-2 uppercase">Operations</div>
+                        <div className="text-xs font-semibold text-gray-500 px-4 py-2 uppercase">Farm Manager</div>
                         {navLink('/manager/dashboard', 'Dashboard', <Home size={18} />)}
+                        {navLink('/manager/daily-operations', 'Daily Operations', <TrendingUp size={18} />)}
                         {navLink('/manager/palm-harvest', 'Palm Harvest', <Zap size={18} />)}
                         {navLink('/manager/cattle', 'Cattle', <TrendingUp size={18} />)}
+                        {navLink('/manager/production', 'Production', <Leaf size={18} />)}
                         {navLink('/manager/sales', 'Sales', <FileText size={18} />)}
                         {navLink('/manager/expenses', 'Expenses', <BarChart3 size={18} />)}
                     </>

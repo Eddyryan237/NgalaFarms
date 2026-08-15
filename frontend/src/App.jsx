@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { getAuth } from './lib/auth'
+import { ToastProvider } from './contexts/ToastContext'
 
 import LoginPage from './pages/LoginPage'
 import FounderLayout from './layouts/FounderLayout'
@@ -11,10 +12,12 @@ import AnalyticsPage from './pages/founder/AnalyticsPage'
 import WeeklyReportsPage from './pages/founder/WeeklyReportsPage'
 import AuditLogsPage from './pages/founder/AuditLogsPage'
 import ManagerDashboard from './pages/manager/ManagerDashboard'
+import DailyOperationsPage from './pages/manager/DailyOperationsPage'
 import CattleListPage from './pages/manager/CattleListPage'
 import PalmHarvestPage from './pages/manager/PalmHarvestPage'
 import SalesPage from './pages/manager/SalesPage'
 import ExpensesPage from './pages/manager/ExpensesPage'
+import ProductionPage from './pages/manager/ProductionPage'
 
 const queryClient = new QueryClient()
 
@@ -97,8 +100,10 @@ function AppContent()
                 {isManager && (
                     <Route element={<ManagerLayout />}>
                         <Route path="/manager/dashboard" element={<ManagerDashboard />} />
+                        <Route path="/manager/daily-operations" element={<DailyOperationsPage />} />
                         <Route path="/manager/cattle" element={<CattleListPage />} />
                         <Route path="/manager/palm-harvest" element={<PalmHarvestPage />} />
+                        <Route path="/manager/production" element={<ProductionPage />} />
                         <Route path="/manager/sales" element={<SalesPage />} />
                         <Route path="/manager/expenses" element={<ExpensesPage />} />
                     </Route>
@@ -115,7 +120,9 @@ export default function App()
 {
     return (
         <QueryClientProvider client={queryClient}>
-            <AppContent />
+            <ToastProvider>
+                <AppContent />
+            </ToastProvider>
         </QueryClientProvider>
     )
 }
