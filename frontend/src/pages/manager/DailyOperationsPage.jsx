@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Calendar } from 'lucide-react'
 import apiClient from '../../lib/api'
+import { useToast } from '../../hooks/useToast'
 
 const OPERATION_TYPES = [
     'Clearing',
@@ -21,6 +22,7 @@ const OPERATION_TYPES = [
 export default function DailyOperationsPage()
 {
     const queryClient = useQueryClient()
+    const { showToast } = useToast()
     const [showForm, setShowForm] = useState(false)
     const [filter, setFilter] = useState('all')
     const [formData, setFormData] = useState({
@@ -33,18 +35,18 @@ export default function DailyOperationsPage()
     // Fetch operations
     const { data: operations = [] } = useQuery({
         queryKey: ['daily-operations'],
-        queryFn: () => apiClient.get('/daily-operations').then(r => r.data)
+        queryFn: () => apiClient.get('/api/daily-operations').then(r => r.data)
     })
 
     // Fetch plantations for selector
     const { data: plantations = [] } = useQuery({
         queryKey: ['plantations'],
-        queryFn: () => apiClient.get('/plantations').then(r => r.data)
+        queryFn: () => apiClient.get('/api/plantations').then(r => r.data)
     })
 
     // Create operation mutation
     const createMutation = useMutation({
-        mutationFn: (data) => apiClient.post('/daily-operations', data),
+        mutationFn: (data) => apiClient.post('/api/daily-operations', data),
         onSuccess: () =>
         {
             queryClient.invalidateQueries(['daily-operations'])
@@ -55,15 +57,25 @@ export default function DailyOperationsPage()
                 date: new Date().toISOString().split('T')[0],
                 plantationId: null
             })
+            showToast('Operation recorded successfully!', 'success')
+        },
+        onError: (err) =>
+        {
+            showToast(err.response?.data?.message || 'Failed to record operation', 'error')
         }
     })
 
     // Delete operation mutation
     const deleteMutation = useMutation({
-        mutationFn: (id) => apiClient.delete(`/daily-operations/${id}`),
+        mutationFn: (id) => apiClient.delete(`/api/daily-operations/${id}`),
         onSuccess: () =>
         {
             queryClient.invalidateQueries(['daily-operations'])
+            showToast('Operation deleted successfully!', 'success')
+        },
+        onError: (err) =>
+        {
+            showToast(err.response?.data?.message || 'Failed to delete operation', 'error')
         }
     })
 

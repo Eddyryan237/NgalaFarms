@@ -7,7 +7,7 @@ using NgalaFarms.Infrastructure.Data;
 namespace NgalaFarms.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/daily-operations")]
 public class DailyOperationsController : ControllerBase
 {
     private readonly NgalaFarmsDbContext _db;

@@ -11,34 +11,34 @@ export default function FounderDashboard()
     // Fetch all system data
     const { data: expenses = [], isLoading: expensesLoading, refetch: refetchExpenses } = useQuery({
         queryKey: ['all-expenses'],
-        queryFn: () => apiClient.get('/api/expenses').then(r => r.data).catch(() => [])
+        queryFn: () => apiClient.get('/expenses').then(r => r.data).catch(() => [])
     })
 
     const { data: production = [], isLoading: productionLoading, refetch: refetchProduction } = useQuery({
         queryKey: ['all-production'],
-        queryFn: () => apiClient.get('/api/production').then(r => r.data).catch(() => [])
+        queryFn: () => apiClient.get('/production').then(r => r.data).catch(() => [])
     })
 
     const { data: sales = [], isLoading: salesLoading, refetch: refetchSales } = useQuery({
         queryKey: ['all-sales'],
-        queryFn: () => apiClient.get('/api/sales').then(r => r.data).catch(() => [])
+        queryFn: () => apiClient.get('/sales').then(r => r.data).catch(() => [])
     })
 
     const { data: cattle = [], isLoading: cattleLoading, refetch: refetchCattle } = useQuery({
         queryKey: ['all-cattle'],
-        queryFn: () => apiClient.get('/api/cattle').then(r => r.data).catch(() => [])
+        queryFn: () => apiClient.get('/cattle').then(r => r.data).catch(() => [])
     })
 
     const { data: dailyOperations = [], isLoading: operationsLoading } = useQuery({
         queryKey: ['all-daily-operations'],
-        queryFn: () => apiClient.get('/api/daily-operations').then(r => r.data).catch(() => [])
+        queryFn: () => apiClient.get('/daily-operations').then(r => r.data).catch(() => [])
     })
 
     const handleClearAllData = async () =>
     {
         try
         {
-            await apiClient.post('/api/admin/clear-data')
+            await apiClient.post('/admin/clear-data')
             alert('✅ All data cleared successfully. System reset for testing.')
             refetchExpenses()
             refetchProduction()

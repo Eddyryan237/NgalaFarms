@@ -48,4 +48,54 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
         var dashboard = await dashRes.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         dashboard.Should().ContainKey("totalRevenue");
     }
+
+    [Fact]
+    public async Task ManagerCanCreateAndUpdateDailyOperation_FounderCanSeeUpdatedRecord()
+    {
+        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "ChangeMe#2026");
+        var managerClient = _factory.CreateClient();
+        managerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", managerToken);
+
+        var createPayload = new
+        {
+            operationType = "Clearing",
+            description = "Cleared block A1",
+            date = DateTime.UtcNow.Date,
+            plantationId = "PLT-0001",
+            palmBlockId = "A1"
+        };
+
+        var createRes = await managerClient.PostAsJsonAsync("/api/daily-operations", createPayload);
+        createRes.EnsureSuccessStatusCode();
+        var createdOperation = await createRes.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        createdOperation.Should().ContainKey("id");
+
+        var operationId = Convert.ToInt32(createdOperation!["id"]);
+
+        var updatePayload = new
+        {
+            operationType = "Weeding",
+            description = "Cleared and weeded block A1",
+            date = DateTime.UtcNow.Date,
+            plantationId = "PLT-0001",
+            palmBlockId = "A1",
+            performedBy = "manager@ngalafarms.com"
+        };
+
+        var updateRes = await managerClient.PutAsJsonAsync($"/api/daily-operations/{operationId}", updatePayload);
+        updateRes.EnsureSuccessStatusCode();
+
+        var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "ChangeMe#2026");
+        var founderClient = _factory.CreateClient();
+        founderClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", founderToken);
+
+        var listRes = await founderClient.GetAsync("/api/daily-operations");
+        listRes.EnsureSuccessStatusCode();
+        var operations = await listRes.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();
+        operations.Should().NotBeNull();
+        operations!.Should().ContainSingle(op =>
+            Convert.ToInt32(op["id"]) == operationId &&
+            op["operationType"]?.ToString() == "Weeding" &&
+            op["description"]?.ToString() == "Cleared and weeded block A1");
+    }
 }
