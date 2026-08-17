@@ -25,17 +25,21 @@ export default function DailyOperationsPage()
     const { showToast } = useToast()
     const [showForm, setShowForm] = useState(false)
     const [filter, setFilter] = useState('all')
+    const [editingId, setEditingId] = useState(null)
+    const [selectedOperation, setSelectedOperation] = useState(null)
     const [formData, setFormData] = useState({
         operationType: '',
         description: '',
         date: new Date().toISOString().split('T')[0],
-        plantationId: null
+        plantationId: '',
+        palmBlockId: '',
+        performedBy: ''
     })
 
     // Fetch operations
     const { data: operations = [] } = useQuery({
         queryKey: ['daily-operations'],
-        queryFn: () => apiClient.get('/api/daily-operations').then(r => r.data)
+        queryFn: () => apiClient.get('/daily-operations').then(r => r.data || [])
     })
 
     // Fetch plantations for selector
@@ -44,33 +48,46 @@ export default function DailyOperationsPage()
         queryFn: () => apiClient.get('/api/plantations').then(r => r.data)
     })
 
-    // Create operation mutation
-    const createMutation = useMutation({
-        mutationFn: (data) => apiClient.post('/api/daily-operations', data),
+    const invalidateDailyOperations = () =>
+    {
+        queryClient.invalidateQueries({ queryKey: ['daily-operations'] })
+        queryClient.invalidateQueries({ queryKey: ['all-daily-operations'] })
+        queryClient.invalidateQueries({ queryKey: ['manager-dashboard'] })
+    }
+
+    // Create/update operation mutation
+    const saveMutation = useMutation({
+        mutationFn: (data) => editingId
+            ? apiClient.put(`/daily-operations/${editingId}`, data)
+            : apiClient.post('/daily-operations', data),
         onSuccess: () =>
         {
-            queryClient.invalidateQueries(['daily-operations'])
+            invalidateDailyOperations()
             setShowForm(false)
+            setEditingId(null)
+            setSelectedOperation(null)
             setFormData({
                 operationType: '',
                 description: '',
                 date: new Date().toISOString().split('T')[0],
-                plantationId: null
+                plantationId: '',
+                palmBlockId: '',
+                performedBy: ''
             })
-            showToast('Operation recorded successfully!', 'success')
+            showToast(editingId ? 'Operation updated successfully!' : 'Operation recorded successfully!', 'success')
         },
         onError: (err) =>
         {
-            showToast(err.response?.data?.message || 'Failed to record operation', 'error')
+            showToast(err.response?.data?.message || (editingId ? 'Failed to update operation' : 'Failed to record operation'), 'error')
         }
     })
 
     // Delete operation mutation
     const deleteMutation = useMutation({
-        mutationFn: (id) => apiClient.delete(`/api/daily-operations/${id}`),
+        mutationFn: (id) => apiClient.delete(`/daily-operations/${id}`),
         onSuccess: () =>
         {
-            queryClient.invalidateQueries(['daily-operations'])
+            invalidateDailyOperations()
             showToast('Operation deleted successfully!', 'success')
         },
         onError: (err) =>
@@ -87,7 +104,44 @@ export default function DailyOperationsPage()
             alert('Please fill in all required fields')
             return
         }
-        createMutation.mutate(formData)
+
+        const payload = {
+            ...formData,
+            plantationId: formData.plantationId || null,
+            palmBlockId: formData.palmBlockId || null,
+            performedBy: formData.performedBy || 'Manager'
+        }
+
+        saveMutation.mutate(payload)
+    }
+
+    const startEdit = (op) =>
+    {
+        setEditingId(op.id)
+        setSelectedOperation(op)
+        setFormData({
+            operationType: op.operationType || '',
+            description: op.description || '',
+            date: op.date ? new Date(op.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            plantationId: op.plantationId || '',
+            palmBlockId: op.palmBlockId || '',
+            performedBy: op.performedBy || ''
+        })
+        setShowForm(true)
+    }
+
+    const resetForm = () =>
+    {
+        setShowForm(false)
+        setEditingId(null)
+        setFormData({
+            operationType: '',
+            description: '',
+            date: new Date().toISOString().split('T')[0],
+            plantationId: '',
+            palmBlockId: '',
+            performedBy: ''
+        })
     }
 
     const filteredOperations = filter === 'all'
@@ -114,11 +168,19 @@ export default function DailyOperationsPage()
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Daily Operations</h1>
                 <button
-                    onClick={() => setShowForm(!showForm)}
+                    onClick={() => {
+                        setSelectedOperation(null)
+                        setEditingId(null)
+                        setShowForm(!showForm)
+                        if (showForm)
+                        {
+                            resetForm()
+                        }
+                    }}
                     className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
                 >
                     <Plus size={20} />
-                    Record Operation
+                    {showForm ? 'Close Form' : 'Record Operation'}
                 </button>
             </div>
 
@@ -141,7 +203,7 @@ export default function DailyOperationsPage()
             {/* Form */}
             {showForm && (
                 <div className="card bg-gradient-to-br from-green-50 to-blue-50 mb-8">
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">Record New Operation</h2>
+                    <h2 className="text-xl font-bold text-gray-900 mb-6">{editingId ? 'Edit Operation' : 'Record New Operation'}</h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -173,20 +235,48 @@ export default function DailyOperationsPage()
                             </div>
                         </div>
 
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Plantation (Optional)
+                                </label>
+                                <select
+                                    value={formData.plantationId || ''}
+                                    onChange={(e) => setFormData({ ...formData, plantationId: e.target.value || '' })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                >
+                                    <option value="">No plantation selected</option>
+                                    {plantations.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Palm Block (Optional)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.palmBlockId}
+                                    onChange={(e) => setFormData({ ...formData, palmBlockId: e.target.value })}
+                                    placeholder="e.g. A1"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Plantation (Optional)
+                                Performed By (Optional)
                             </label>
-                            <select
-                                value={formData.plantationId || ''}
-                                onChange={(e) => setFormData({ ...formData, plantationId: e.target.value ? parseInt(e.target.value) : null })}
+                            <input
+                                type="text"
+                                value={formData.performedBy}
+                                onChange={(e) => setFormData({ ...formData, performedBy: e.target.value })}
+                                placeholder="Manager name or email"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            >
-                                <option value="">No plantation selected</option>
-                                {plantations.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
+                            />
                         </div>
 
                         <div>
@@ -205,14 +295,14 @@ export default function DailyOperationsPage()
                         <div className="flex gap-3">
                             <button
                                 type="submit"
-                                disabled={createMutation.isPending}
+                                disabled={saveMutation.isPending}
                                 className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
                             >
-                                {createMutation.isPending ? 'Recording...' : 'Record Operation'}
+                                {saveMutation.isPending ? (editingId ? 'Updating...' : 'Recording...') : (editingId ? 'Update Operation' : 'Record Operation')}
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setShowForm(false)}
+                                onClick={resetForm}
                                 className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
                             >
                                 Cancel
@@ -282,13 +372,30 @@ export default function DailyOperationsPage()
                                     <td className="px-4 py-3 text-gray-600">{op.performedBy || '-'}</td>
                                     <td className="px-4 py-3 text-gray-600">{op.plantationName || '-'}</td>
                                     <td className="px-4 py-3 text-center">
-                                        <button
-                                            onClick={() => deleteMutation.mutate(op.id)}
-                                            disabled={deleteMutation.isPending}
-                                            className="text-red-600 hover:text-red-800 transition disabled:opacity-50"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
+                                        <div className="flex items-center justify-center gap-3">
+                                            <button
+                                                onClick={() => setSelectedOperation(op)}
+                                                className="text-blue-600 hover:text-blue-800 transition"
+                                                title="View details"
+                                            >
+                                                View
+                                            </button>
+                                            <button
+                                                onClick={() => startEdit(op)}
+                                                className="text-amber-600 hover:text-amber-800 transition"
+                                                title="Edit operation"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => deleteMutation.mutate(op.id)}
+                                                disabled={deleteMutation.isPending}
+                                                className="text-red-600 hover:text-red-800 transition disabled:opacity-50"
+                                                title="Delete operation"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -296,6 +403,55 @@ export default function DailyOperationsPage()
                     </table>
                 )}
             </div>
+
+            {selectedOperation && (
+                <div className="card mt-8">
+                    <div className="flex justify-between items-start gap-4 mb-4">
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Operation details</p>
+                            <h3 className="text-xl font-bold text-gray-900">{selectedOperation.operationType}</h3>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => startEdit(selectedOperation)}
+                                className="px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                onClick={() => setSelectedOperation(null)}
+                                className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p className="text-gray-500">Date</p>
+                            <p className="font-semibold text-gray-900">{new Date(selectedOperation.date).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                            <p className="text-gray-500">Performed by</p>
+                            <p className="font-semibold text-gray-900">{selectedOperation.performedBy || 'Manager'}</p>
+                        </div>
+                        <div>
+                            <p className="text-gray-500">Plantation</p>
+                            <p className="font-semibold text-gray-900">{selectedOperation.plantationId || 'Not assigned'}</p>
+                        </div>
+                        <div>
+                            <p className="text-gray-500">Palm block</p>
+                            <p className="font-semibold text-gray-900">{selectedOperation.palmBlockId || 'Not assigned'}</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-4">
+                        <p className="text-gray-500">Description</p>
+                        <p className="mt-1 text-gray-900 whitespace-pre-wrap">{selectedOperation.description || 'No description provided.'}</p>
+                    </div>
+                </div>
+            )}
 
             {/* Operation Types Stats */}
             <div className="card mt-8">

@@ -10,7 +10,12 @@ import ManagerLayout from './layouts/ManagerLayout'
 import FounderDashboard from './pages/founder/FounderDashboard'
 import AnalyticsPage from './pages/founder/AnalyticsPage'
 import WeeklyReportsPage from './pages/founder/WeeklyReportsPage'
+import WeeklyReportDetail from './pages/founder/WeeklyReportDetail'
+import DailyReportPage from './pages/founder/DailyReportPage'
+import MonthlyReportPage from './pages/founder/MonthlyReportPage'
+import YearlyReportPage from './pages/founder/YearlyReportPage'
 import AuditLogsPage from './pages/founder/AuditLogsPage'
+import DetailView from './pages/founder/DetailView'
 import ManagerDashboard from './pages/manager/ManagerDashboard'
 import DailyOperationsPage from './pages/manager/DailyOperationsPage'
 import CattleListPage from './pages/manager/CattleListPage'
@@ -93,6 +98,11 @@ function AppContent()
                         <Route path="/founder/dashboard" element={<FounderDashboard />} />
                         <Route path="/founder/analytics" element={<AnalyticsPage />} />
                         <Route path="/founder/reports" element={<WeeklyReportsPage />} />
+                        <Route path="/founder/reports/daily" element={<DailyReportPage />} />
+                        <Route path="/founder/reports/monthly" element={<MonthlyReportPage />} />
+                        <Route path="/founder/reports/yearly" element={<YearlyReportPage />} />
+                        <Route path="/founder/reports/:id" element={<WeeklyReportDetail />} />
+                        <Route path="/founder/details/:type/:id" element={<DetailView />} />
                         <Route path="/founder/audit-logs" element={<AuditLogsPage />} />
                     </Route>
                 )}

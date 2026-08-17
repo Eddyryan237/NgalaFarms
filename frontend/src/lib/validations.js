@@ -11,18 +11,23 @@ export const cattleSchema = z.object({
 
 export const palmHarvestSchema = z.object({
     plantationId: z.string().min(1, 'Plantation is required'),
+    palmBlockId: z.string().optional(),
     harvestDate: z.string().min(1, 'Harvest date is required'),
-    fruitBunchesCollected: z.number().min(1, 'Fruit bunches must be at least 1'),
-    estimatedYieldKg: z.number().min(0.1, 'Estimated yield must be greater than 0'),
+    numberOfBunches: z.coerce.number().min(1, 'Fruit bunches must be at least 1'),
+    totalWeightKg: z.coerce.number().min(0.1, 'Estimated yield must be greater than 0'),
+    harvestTeam: z.string().min(1, 'Harvest team is required'),
+    laborCost: z.coerce.number().min(0, 'Labor cost is required'),
     notes: z.string().optional()
 })
 
 export const salesSchema = z.object({
-    customerId: z.string().min(1, 'Customer is required'),
+    customerId: z.string().optional().or(z.literal('')),
     saleDate: z.string().min(1, 'Sale date is required'),
-    productType: z.enum(['Crude Palm Oil', 'Palm Kernel Oil', 'Fresh Fruit Bunch'], 'Product type is required'),
-    quantityKg: z.number().min(0.1, 'Quantity must be greater than 0'),
-    pricePerKg: z.number().min(0, 'Price must be at least 0'),
+    product: z.enum(['Palm Oil', 'Palm Kernel Oil', 'Fresh Fruit Bunch'], 'Product is required'),
+    quantityLitres: z.coerce.number().min(0.1, 'Quantity must be greater than 0'),
+    unitPrice: z.coerce.number().min(0, 'Price must be at least 0'),
+    paymentMethod: z.enum(['Cash', 'BankTransfer', 'MobileMoney'], 'Payment method is required'),
+    paymentStatus: z.enum(['Paid', 'Pending', 'PartiallyPaid', 'Overdue'], 'Payment status is required'),
     notes: z.string().optional()
 })
 

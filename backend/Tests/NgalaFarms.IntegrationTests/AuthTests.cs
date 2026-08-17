@@ -24,6 +24,6 @@ public class AuthTests : IClassFixture<WebApplicationFactory<Program>>
         var res = await client.PostAsJsonAsync("/api/auth/login", login);
         res.EnsureSuccessStatusCode();
         var json = await res.Content.ReadAsStringAsync();
-        json.Should().Contain("token", "response should include token");
+        json.Should().Contain("accessToken", "response should include an access token");
     }
 }

@@ -1,63 +1,123 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Plus, AlertCircle, Loader, Trash2, Edit2 } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Plus, AlertCircle, Loader, Trash2, Pencil, Eye } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import apiClient from '../../lib/api'
 import Modal from '../../components/Modal'
-import { useFormHandler } from '../../hooks/useFormHandler'
+import { useToast } from '../../hooks/useToast'
 
 const productionSchema = z.object({
     date: z.string().min(1, 'Production date is required'),
     category: z.enum(['Palm Oil', 'Cattle', 'Processed Goods'], 'Category is required'),
     item: z.string().min(1, 'Item/Product name is required'),
-    quantity: z.number().min(0.1, 'Quantity must be greater than 0'),
+    quantity: z.coerce.number().min(0.1, 'Quantity must be greater than 0'),
     unit: z.string().min(1, 'Unit is required'),
-    cost: z.number().min(0, 'Cost cannot be negative'),
+    cost: z.coerce.number().min(0, 'Cost cannot be negative'),
     description: z.string().optional()
 })
 
 export default function ProductionPage()
 {
+    const queryClient = useQueryClient()
+    const { showToast } = useToast()
     const [showModal, setShowModal] = useState(false)
+    const [showDetails, setShowDetails] = useState(false)
     const [filter, setFilter] = useState('All')
+    const [editingId, setEditingId] = useState(null)
+    const [selectedProduction, setSelectedProduction] = useState(null)
 
-    const { data: production = [], isLoading, refetch } = useQuery({
+    const { data: production = [], isLoading } = useQuery({
         queryKey: ['production'],
-        queryFn: () => apiClient.get('/api/production').then(r => r.data).catch(() => [])
+        queryFn: () => apiClient.get('/production').then(r => r.data || []).catch(() => [])
     })
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm({
-        resolver: zodResolver(productionSchema)
-    })
-
-    const { submit, loading, error } = useFormHandler(['production'])
-
-    const onSubmit = async (data) =>
-    {
-        const success = await submit('/api/production', data)
-        if (success)
-        {
-            reset()
-            setShowModal(false)
-            refetch()
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
+        resolver: zodResolver(productionSchema),
+        defaultValues: {
+            date: new Date().toISOString().split('T')[0],
+            category: 'Palm Oil',
+            item: '',
+            quantity: '',
+            unit: '',
+            cost: '',
+            description: ''
         }
+    })
+
+    const invalidateProductionQueries = () => {
+        queryClient.invalidateQueries({ queryKey: ['production'] })
+        queryClient.invalidateQueries({ queryKey: ['all-production'] })
+        queryClient.invalidateQueries({ queryKey: ['manager-dashboard'] })
     }
 
-    const handleDelete = async (id) =>
-    {
-        if (window.confirm('Delete this production record?'))
-        {
-            try
-            {
-                await apiClient.delete(`/api/production/${id}`)
-                refetch()
-            } catch (err)
-            {
-                alert('Error deleting record: ' + err.response?.data?.message)
-            }
+    const saveMutation = useMutation({
+        mutationFn: (payload) => editingId
+            ? apiClient.put(`/production/${editingId}`, payload)
+            : apiClient.post('/production', payload),
+        onSuccess: () => {
+            invalidateProductionQueries()
+            resetForm()
+            showToast(editingId ? 'Production record updated successfully!' : 'Production recorded successfully!', 'success')
+        },
+        onError: (err) => {
+            showToast(err.response?.data?.message || (editingId ? 'Failed to update production record' : 'Failed to record production'), 'error')
         }
+    })
+
+    const deleteMutation = useMutation({
+        mutationFn: (id) => apiClient.delete(`/production/${id}`),
+        onSuccess: () => {
+            invalidateProductionQueries()
+            setSelectedProduction(null)
+            setShowDetails(false)
+            showToast('Production deleted successfully!', 'success')
+        },
+        onError: (err) => {
+            showToast(err.response?.data?.message || 'Failed to delete production record', 'error')
+        }
+    })
+
+    const resetForm = () => {
+        reset({
+            date: new Date().toISOString().split('T')[0],
+            category: 'Palm Oil',
+            item: '',
+            quantity: '',
+            unit: '',
+            cost: '',
+            description: ''
+        })
+        setEditingId(null)
+        setShowModal(false)
+    }
+
+    const onSubmit = (data) => {
+        const payload = {
+            date: data.date,
+            category: data.category,
+            item: data.item,
+            quantity: Number(data.quantity),
+            unit: data.unit,
+            cost: Number(data.cost),
+            description: data.description || ''
+        }
+
+        saveMutation.mutate(payload)
+    }
+
+    const openEdit = (record) => {
+        setEditingId(record.id)
+        setSelectedProduction(record)
+        setValue('date', record.date ? record.date.split('T')[0] : new Date().toISOString().split('T')[0])
+        setValue('category', record.category || 'Palm Oil')
+        setValue('item', record.item || '')
+        setValue('quantity', record.quantity ?? '')
+        setValue('unit', record.unit || '')
+        setValue('cost', record.cost ?? '')
+        setValue('description', record.description || '')
+        setShowModal(true)
     }
 
     const filteredProduction = filter === 'All'
@@ -73,7 +133,7 @@ export default function ProductionPage()
         <div>
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Production Records</h1>
-                <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+                <button onClick={() => { setEditingId(null); setSelectedProduction(null); setShowModal(true); reset({ date: new Date().toISOString().split('T')[0], category: 'Palm Oil', item: '', quantity: '', unit: '', cost: '', description: '' }) }} className="btn-primary flex items-center gap-2">
                     <Plus size={18} />
                     Record Production
                 </button>
@@ -148,9 +208,17 @@ export default function ProductionPage()
                                             <td className="py-3 px-4 font-bold text-green-600">{formatCurrency(p.quantity * p.cost)}</td>
                                             <td className="py-3 px-4 text-xs text-gray-600">{p.description || '-'}</td>
                                             <td className="py-3 px-4">
-                                                <button onClick={() => handleDelete(p.id)} className="text-red-600 hover:text-red-900">
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="flex items-center gap-3">
+                                                    <button type="button" onClick={() => window.location.href = `/founder/details/production/${p.id}`} className="text-blue-600 hover:text-blue-800" title="View details">
+                                                        <Eye size={16} />
+                                                    </button>
+                                                    <button type="button" onClick={() => openEdit(p)} className="text-green-600 hover:text-green-800" title="Edit record">
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button type="button" onClick={() => deleteMutation.mutate(p.id)} className="text-red-600 hover:text-red-900" title="Delete record">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -161,12 +229,12 @@ export default function ProductionPage()
                 </>
             )}
 
-            <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Record Production">
+            <Modal isOpen={showModal} onClose={() => resetForm()} title={editingId ? 'Edit Production Record' : 'Record Production'}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {error && (
+                    {saveMutation.isError && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded flex gap-2 text-red-700 text-sm">
                             <AlertCircle size={18} className="flex-shrink-0" />
-                            {error}
+                            {saveMutation.error?.response?.data?.message || 'Failed to save production record'}
                         </div>
                     )}
 
@@ -220,15 +288,64 @@ export default function ProductionPage()
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">
+                        <button type="button" onClick={() => resetForm()} className="btn-secondary flex-1">
                             Cancel
                         </button>
-                        <button type="submit" disabled={loading} className="btn-primary flex-1 flex items-center justify-center gap-2">
-                            {loading && <Loader size={16} className="animate-spin" />}
-                            Record Production
+                        <button type="submit" disabled={saveMutation.isPending} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                            {saveMutation.isPending && <Loader size={16} className="animate-spin" />}
+                            {editingId ? 'Update Production' : 'Record Production'}
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            <Modal isOpen={showDetails} onClose={() => { setShowDetails(false); setSelectedProduction(null) }} title="Production Details">
+                {selectedProduction ? (
+                    <div className="space-y-4 text-sm text-gray-700">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-gray-500">Date</p>
+                                <p className="font-semibold text-gray-900">{formatDate(selectedProduction.date)}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500">Category</p>
+                                <p className="font-semibold text-gray-900">{selectedProduction.category}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500">Item</p>
+                                <p className="font-semibold text-gray-900">{selectedProduction.item}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500">Quantity</p>
+                                <p className="font-semibold text-gray-900">{selectedProduction.quantity} {selectedProduction.unit}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500">Cost per Unit</p>
+                                <p className="font-semibold text-gray-900">{formatCurrency(selectedProduction.cost)}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500">Total Value</p>
+                                <p className="font-semibold text-gray-900 text-green-700">{formatCurrency(selectedProduction.quantity * selectedProduction.cost)}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-gray-500">Description</p>
+                            <p className="font-semibold text-gray-900 whitespace-pre-line">{selectedProduction.description || 'No description provided.'}</p>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button type="button" onClick={() => { setShowDetails(false); openEdit(selectedProduction) }} className="btn-primary flex-1">
+                                Edit Record
+                            </button>
+                            <button type="button" onClick={() => { setShowDetails(false); deleteMutation.mutate(selectedProduction.id) }} className="btn-secondary flex-1">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <p className="text-gray-500">No production selected.</p>
+                )}
             </Modal>
         </div>
     )

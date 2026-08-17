@@ -26,14 +26,14 @@ public class SalesController : ControllerBase
         var q = _db.Sales.AsQueryable();
         if (from.HasValue) q = q.Where(s => s.SaleDate >= from);
         if (to.HasValue) q = q.Where(s => s.SaleDate <= to);
-        var list = await q.OrderByDescending(s => s.SaleDate).ToListAsync();
+        var list = await q.Where(s => !s.IsDeleted).OrderByDescending(s => s.SaleDate).ToListAsync();
         return Ok(list.Select(Map));
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> Get(int id)
     {
-        var s = await _db.Sales.FindAsync(id);
+        var s = await _db.Sales.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         return s == null ? NotFound() : Ok(Map(s));
     }
 
@@ -41,28 +41,44 @@ public class SalesController : ControllerBase
     [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Create([FromBody] CreateSaleRequest req)
     {
+        if (req.CustomerId.HasValue)
+        {
+            var customerExists = await _db.Customers.AnyAsync(c => c.Id == req.CustomerId.Value && !c.IsDeleted);
+            if (!customerExists)
+            {
+                return BadRequest(new { message = "Selected customer does not exist." });
+            }
+        }
+
         var totalPrice = req.QuantityLitres * req.UnitPrice;
         var s = new Sale
         {
             InvoiceId = await _ids.GenerateSaleInvoiceIdAsync(),
-            CustomerId = req.CustomerId, CustomerName = req.CustomerName,
-            Product = req.Product, QuantityLitres = req.QuantityLitres,
-            UnitPrice = req.UnitPrice, TotalPrice = totalPrice,
-            PaymentMethod = req.PaymentMethod, PaymentStatus = req.PaymentStatus,
-            SaleDate = req.SaleDate, Notes = req.Notes
+            CustomerId = req.CustomerId,
+            CustomerName = req.CustomerName,
+            Product = req.Product,
+            QuantityLitres = req.QuantityLitres,
+            UnitPrice = req.UnitPrice,
+            TotalPrice = totalPrice,
+            PaymentMethod = req.PaymentMethod,
+            PaymentStatus = req.PaymentStatus,
+            SaleDate = req.SaleDate,
+            Notes = req.Notes
         };
         _db.Sales.Add(s);
 
-        // Decrease palm oil inventory
         var inv = await _db.Inventories.FirstOrDefaultAsync(i => i.ProductName == "Palm Oil");
         if (inv != null)
         {
             inv.CurrentQuantity = Math.Max(0, inv.CurrentQuantity - req.QuantityLitres);
             _db.StockTransactions.Add(new StockTransaction
             {
-                InventoryId = inv.Id, TransactionType = StockTransactionType.Sold,
-                Quantity = req.QuantityLitres, BalanceAfter = inv.CurrentQuantity,
-                ReferenceId = s.InvoiceId, Description = $"Sale {s.InvoiceId}",
+                InventoryId = inv.Id,
+                TransactionType = StockTransactionType.Sold,
+                Quantity = req.QuantityLitres,
+                BalanceAfter = inv.CurrentQuantity,
+                ReferenceId = s.InvoiceId,
+                Description = $"Sale {s.InvoiceId}",
                 TransactionDate = req.SaleDate
             });
         }
@@ -74,11 +90,42 @@ public class SalesController : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = s.Id }, Map(s));
     }
 
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Founder,Manager")]
+    public async Task<IActionResult> Update(int id, [FromBody] CreateSaleRequest req)
+    {
+        var s = await _db.Sales.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+        if (s == null) return NotFound();
+
+        if (req.CustomerId.HasValue)
+        {
+            var customerExists = await _db.Customers.AnyAsync(c => c.Id == req.CustomerId.Value && !c.IsDeleted);
+            if (!customerExists)
+            {
+                return BadRequest(new { message = "Selected customer does not exist." });
+            }
+        }
+
+        s.CustomerId = req.CustomerId;
+        s.CustomerName = req.CustomerName;
+        s.Product = req.Product;
+        s.QuantityLitres = req.QuantityLitres;
+        s.UnitPrice = req.UnitPrice;
+        s.TotalPrice = req.QuantityLitres * req.UnitPrice;
+        s.PaymentMethod = req.PaymentMethod;
+        s.PaymentStatus = req.PaymentStatus;
+        s.SaleDate = req.SaleDate;
+        s.Notes = req.Notes;
+
+        await _db.SaveChangesAsync();
+        return Ok(Map(s));
+    }
+
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Founder")]
     public async Task<IActionResult> Delete(int id)
     {
-        var s = await _db.Sales.FindAsync(id);
+        var s = await _db.Sales.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         if (s == null) return NotFound();
         s.IsDeleted = true; await _db.SaveChangesAsync();
         return NoContent();
@@ -86,10 +133,18 @@ public class SalesController : ControllerBase
 
     private static SaleDto Map(Sale s) => new()
     {
-        Id = s.Id, InvoiceId = s.InvoiceId, CustomerId = s.CustomerId,
-        CustomerName = s.CustomerName, Product = s.Product,
-        QuantityLitres = s.QuantityLitres, UnitPrice = s.UnitPrice, TotalPrice = s.TotalPrice,
-        PaymentMethod = s.PaymentMethod, PaymentStatus = s.PaymentStatus,
-        SaleDate = s.SaleDate, Notes = s.Notes, CreatedAt = s.CreatedAt
+        Id = s.Id,
+        InvoiceId = s.InvoiceId,
+        CustomerId = s.CustomerId,
+        CustomerName = s.CustomerName,
+        Product = s.Product,
+        QuantityLitres = s.QuantityLitres,
+        UnitPrice = s.UnitPrice,
+        TotalPrice = s.TotalPrice,
+        PaymentMethod = s.PaymentMethod,
+        PaymentStatus = s.PaymentStatus,
+        SaleDate = s.SaleDate,
+        Notes = s.Notes,
+        CreatedAt = s.CreatedAt
     };
 }

@@ -42,6 +42,21 @@ public class PalmHarvestsController : ControllerBase
     [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Create([FromBody] CreatePalmHarvestRequest req)
     {
+        var plantationExists = await _db.Plantations.AnyAsync(p => p.Id == req.PlantationId && !p.IsDeleted);
+        if (!plantationExists)
+        {
+            return BadRequest(new { message = "Selected plantation does not exist." });
+        }
+
+        if (req.PalmBlockId.HasValue)
+        {
+            var blockExists = await _db.PalmBlocks.AnyAsync(b => b.Id == req.PalmBlockId.Value && b.PlantationId == req.PlantationId && !b.IsDeleted);
+            if (!blockExists)
+            {
+                return BadRequest(new { message = "Selected palm block does not exist for the chosen plantation." });
+            }
+        }
+
         var h = new PalmHarvest
         {
             HarvestId = await _ids.GenerateHarvestIdAsync(),
@@ -88,12 +103,28 @@ public class PalmHarvestsController : ControllerBase
     {
         var h = await _db.PalmHarvests.FindAsync(id);
         if (h == null) return NotFound();
+
+        var plantationExists = await _db.Plantations.AnyAsync(p => p.Id == req.PlantationId && !p.IsDeleted);
+        if (!plantationExists)
+        {
+            return BadRequest(new { message = "Selected plantation does not exist." });
+        }
+
+        if (req.PalmBlockId.HasValue)
+        {
+            var blockExists = await _db.PalmBlocks.AnyAsync(b => b.Id == req.PalmBlockId.Value && b.PlantationId == req.PlantationId && !b.IsDeleted);
+            if (!blockExists)
+            {
+                return BadRequest(new { message = "Selected palm block does not exist for the chosen plantation." });
+            }
+        }
+
         h.PlantationId = req.PlantationId; h.PalmBlockId = req.PalmBlockId;
         h.HarvestDate = req.HarvestDate; h.NumberOfBunches = req.NumberOfBunches;
         h.TotalWeightKg = req.TotalWeightKg; h.HarvestTeam = req.HarvestTeam;
         h.LaborCost = req.LaborCost; h.Notes = req.Notes;
         await _db.SaveChangesAsync();
-        return NoContent();
+        return Ok(Map(h));
     }
 
     [HttpDelete("{id:int}")]

@@ -33,6 +33,28 @@ public class DailyOperationsController : ControllerBase
         return CreatedAtAction(nameof(GetAll), new { id = op.Id }, op);
     }
 
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Manager,Founder")]
+    public async Task<IActionResult> Update(int id, [FromBody] DailyOperation updatedOp)
+    {
+        if (updatedOp == null) return BadRequest();
+
+        var op = await _db.DailyOperations.FindAsync(id);
+        if (op == null) return NotFound();
+
+        op.OperationType = updatedOp.OperationType;
+        op.Description = updatedOp.Description ?? op.Description;
+        op.Date = updatedOp.Date;
+        op.PlantationId = updatedOp.PlantationId;
+        op.PalmBlockId = updatedOp.PalmBlockId;
+
+        if (!string.IsNullOrWhiteSpace(updatedOp.PerformedBy))
+            op.PerformedBy = updatedOp.PerformedBy;
+
+        await _db.SaveChangesAsync();
+        return Ok(op);
+    }
+
     [HttpDelete("{id}")]
     [Authorize(Roles = "Manager,Founder")]
     public async Task<IActionResult> Delete(int id)

@@ -61,6 +61,26 @@ public class ProductionController : ControllerBase
         return production == null ? NotFound() : Ok(production);
     }
 
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Founder,Manager")]
+    public async Task<IActionResult> Update(int id, [FromBody] CreateProductionRequest req)
+    {
+        var production = await _db.Productions.FindAsync(id);
+        if (production == null)
+            return NotFound();
+
+        production.Date = req.Date;
+        production.Category = req.Category;
+        production.Item = req.Item;
+        production.Quantity = req.Quantity;
+        production.Unit = req.Unit;
+        production.Cost = req.Cost;
+        production.Description = req.Description;
+
+        await _db.SaveChangesAsync();
+        return Ok(production);
+    }
+
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Founder")]
     public async Task<IActionResult> Delete(int id)

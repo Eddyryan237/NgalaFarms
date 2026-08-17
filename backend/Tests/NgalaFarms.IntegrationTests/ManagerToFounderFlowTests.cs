@@ -1,7 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -24,7 +27,7 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
         var res = await client.PostAsJsonAsync("/api/auth/login", login);
         res.EnsureSuccessStatusCode();
         var body = await res.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        return body![("token")]!.ToString()!;
+        return body!["accessToken"]!.ToString()!;
     }
 
     [Fact]
@@ -43,10 +46,74 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
         var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "ChangeMe#2026");
         var founderClient = _factory.CreateClient();
         founderClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", founderToken);
-        var dashRes = await founderClient.GetAsync("/api/dashboard/admin");
+        var dashRes = await founderClient.GetAsync("/api/dashboard/founder");
         dashRes.EnsureSuccessStatusCode();
         var dashboard = await dashRes.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         dashboard.Should().ContainKey("totalRevenue");
+    }
+
+    [Fact]
+    public async Task ManagerCanCreateAndUpdateSale_FounderSeesUpdatedRevenue()
+    {
+        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "ChangeMe#2026");
+        var managerClient = _factory.CreateClient();
+        managerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", managerToken);
+
+        var createPayload = new
+        {
+            customerName = "Integration Customer",
+            product = "Palm Oil",
+            quantityLitres = 10,
+            unitPrice = 2000,
+            paymentMethod = "Cash",
+            paymentStatus = "Paid",
+            saleDate = DateTime.UtcNow.Date,
+            notes = "Initial sale"
+        };
+
+        var createRes = await managerClient.PostAsJsonAsync("/api/sales", createPayload);
+        createRes.EnsureSuccessStatusCode();
+        using var createdJson = await createRes.Content.ReadFromJsonAsync<JsonElement>();
+        createdJson.TryGetProperty("id", out var idElement).Should().BeTrue();
+
+        var saleId = idElement.GetInt32();
+
+        var updatePayload = new
+        {
+            customerName = "Integration Customer Updated",
+            product = "Palm Oil",
+            quantityLitres = 12,
+            unitPrice = 2200,
+            paymentMethod = "BankTransfer",
+            paymentStatus = "Paid",
+            saleDate = DateTime.UtcNow.Date,
+            notes = "Updated sale"
+        };
+
+        var updateRes = await managerClient.PutAsJsonAsync($"/api/sales/{saleId}", updatePayload);
+        updateRes.EnsureSuccessStatusCode();
+
+        var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "ChangeMe#2026");
+        var founderClient = _factory.CreateClient();
+        founderClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", founderToken);
+
+        var listRes = await founderClient.GetAsync("/api/sales");
+        listRes.EnsureSuccessStatusCode();
+        using var salesJson = await listRes.Content.ReadFromJsonAsync<JsonElement>();
+
+        salesJson.ValueKind.Should().Be(JsonValueKind.Array);
+        salesJson.EnumerateArray().Should().ContainSingle(sale =>
+            sale.TryGetProperty("id", out var saleIdEl) &&
+            saleIdEl.GetInt32() == saleId &&
+            sale.TryGetProperty("customerName", out var customerNameEl) &&
+            customerNameEl.GetString() == "Integration Customer Updated" &&
+            sale.TryGetProperty("notes", out var notesEl) &&
+            notesEl.GetString() == "Updated sale");
+
+        var dashboardRes = await founderClient.GetAsync("/api/dashboard/founder");
+        dashboardRes.EnsureSuccessStatusCode();
+        var dashboard = await dashboardRes.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        dashboard.Should().ContainKey("financial");
     }
 
     [Fact]
@@ -67,10 +134,10 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
 
         var createRes = await managerClient.PostAsJsonAsync("/api/daily-operations", createPayload);
         createRes.EnsureSuccessStatusCode();
-        var createdOperation = await createRes.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        createdOperation.Should().ContainKey("id");
+        using var createdOperationJson = await createRes.Content.ReadFromJsonAsync<JsonElement>();
+        createdOperationJson.TryGetProperty("id", out var idElement).Should().BeTrue();
 
-        var operationId = Convert.ToInt32(createdOperation!["id"]);
+        var operationId = idElement.GetInt32();
 
         var updatePayload = new
         {
@@ -91,11 +158,41 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
 
         var listRes = await founderClient.GetAsync("/api/daily-operations");
         listRes.EnsureSuccessStatusCode();
-        var operations = await listRes.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();
-        operations.Should().NotBeNull();
-        operations!.Should().ContainSingle(op =>
-            Convert.ToInt32(op["id"]) == operationId &&
-            op["operationType"]?.ToString() == "Weeding" &&
-            op["description"]?.ToString() == "Cleared and weeded block A1");
+        using var operationsJson = await listRes.Content.ReadFromJsonAsync<JsonElement>();
+
+        operationsJson.ValueKind.Should().Be(JsonValueKind.Array);
+        operationsJson.EnumerateArray().Should().ContainSingle(op =>
+            op.TryGetProperty("id", out var opIdElement) &&
+            op.TryGetProperty("operationType", out var opTypeElement) &&
+            op.TryGetProperty("description", out var opDescriptionElement) &&
+            opIdElement.GetInt32() == operationId &&
+            opTypeElement.GetString() == "Weeding" &&
+            opDescriptionElement.GetString() == "Cleared and weeded block A1");
+    }
+
+    [Fact]
+    public async Task ManagerCannotCreateHarvestWithInvalidPalmBlockId()
+    {
+        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "ChangeMe#2026");
+        var managerClient = _factory.CreateClient();
+        managerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", managerToken);
+
+        var payload = new
+        {
+            plantationId = 1,
+            palmBlockId = 999999,
+            harvestDate = DateTime.UtcNow.Date,
+            numberOfBunches = 10,
+            totalWeightKg = 120,
+            harvestTeam = "Team Alpha",
+            laborCost = 5000,
+            notes = "invalid block test"
+        };
+
+        var response = await managerClient.PostAsJsonAsync("/api/palm-harvests", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        body.Should().ContainKey("message");
     }
 }

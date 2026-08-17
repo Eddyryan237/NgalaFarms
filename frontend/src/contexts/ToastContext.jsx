@@ -29,8 +29,10 @@ export function ToastProvider({ children })
         setToasts(prev => prev.filter(t => t.id !== id))
     }, [])
 
+    const showToast = useCallback((message, type = 'success', duration = 3000) => addToast(message, type, duration), [addToast])
+
     return (
-        <ToastContext.Provider value={{ addToast, removeToast }}>
+        <ToastContext.Provider value={{ addToast, showToast, removeToast }}>
             {children}
             <div className="fixed bottom-4 right-4 space-y-2 z-50">
                 {toasts.map(toast => (

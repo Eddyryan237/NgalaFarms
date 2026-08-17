@@ -8,5 +8,9 @@ export function useToast()
     {
         throw new Error('useToast must be used within ToastProvider')
     }
-    return context
+
+    return {
+        ...context,
+        showToast: context.showToast ?? context.addToast
+    }
 }

@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Trash2, RefreshCw, Download, Eye, EyeOff } from 'lucide-react'
+import { AlertCircle, Trash2, RefreshCw, Download, Eye, EyeOff, BarChart3, TrendingUp, Calendar, FileText, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import apiClient from '../../lib/api'
 
 export default function FounderDashboard()
 {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showDetails, setShowDetails] = useState(false)
+    const [selectedItem, setSelectedItem] = useState(null)
+    const [selectedItemType, setSelectedItemType] = useState(null)
 
     // Fetch all system data
     const { data: expenses = [], isLoading: expensesLoading, refetch: refetchExpenses } = useQuery({
@@ -19,6 +22,11 @@ export default function FounderDashboard()
         queryFn: () => apiClient.get('/production').then(r => r.data).catch(() => [])
     })
 
+    const { data: inventories = [] } = useQuery({
+        queryKey: ['inventories'],
+        queryFn: () => apiClient.get('/inventories').then(r => r.data || []).catch(() => [])
+    })
+
     const { data: sales = [], isLoading: salesLoading, refetch: refetchSales } = useQuery({
         queryKey: ['all-sales'],
         queryFn: () => apiClient.get('/sales').then(r => r.data).catch(() => [])
@@ -29,9 +37,14 @@ export default function FounderDashboard()
         queryFn: () => apiClient.get('/cattle').then(r => r.data).catch(() => [])
     })
 
-    const { data: dailyOperations = [], isLoading: operationsLoading } = useQuery({
+    const { data: dailyOperations = [], isLoading: operationsLoading, refetch: refetchDailyOperations } = useQuery({
         queryKey: ['all-daily-operations'],
-        queryFn: () => apiClient.get('/daily-operations').then(r => r.data).catch(() => [])
+        queryFn: () => apiClient.get('/daily-operations').then(r => r.data || []).catch(() => [])
+    })
+
+    const { data: palmHarvests = [], isLoading: palmHarvestsLoading, refetch: refetchPalmHarvests } = useQuery({
+        queryKey: ['all-palm-harvests'],
+        queryFn: () => apiClient.get('/palm-harvests').then(r => r.data || []).catch(() => [])
     })
 
     const handleClearAllData = async () =>
@@ -44,6 +57,8 @@ export default function FounderDashboard()
             refetchProduction()
             refetchSales()
             refetchCattle()
+            refetchDailyOperations()
+            refetchPalmHarvests()
             setShowDeleteConfirm(false)
         } catch (err)
         {
@@ -75,13 +90,28 @@ export default function FounderDashboard()
     const todayExpenses = expenses.filter(e => new Date(e.createdAt).setHours(0, 0, 0, 0) === today.getTime())
     const todayProduction = production.filter(p => new Date(p.date).setHours(0, 0, 0, 0) === today.getTime())
     const todaySales = sales.filter(s => new Date(s.saleDate).setHours(0, 0, 0, 0) === today.getTime())
-    const todayOperations = dailyOperations.filter(o => new Date(o.date).setHours(0, 0, 0, 0) === today.getTime())
+    const todayOperations = dailyOperations.filter(o => {
+        const rowDate = new Date(o.date)
+        return rowDate && rowDate.setHours(0, 0, 0, 0) === today.getTime()
+    })
+
+    const todayHarvests = palmHarvests.filter(h => {
+        const rowDate = new Date(h.harvestDate)
+        return rowDate && rowDate.setHours(0, 0, 0, 0) === today.getTime()
+    })
 
     const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
     const totalProduction = production.reduce((sum, p) => sum + (p.quantity * p.cost || 0), 0)
     const totalSales = sales.reduce((sum, s) => sum + (s.totalPrice || 0), 0)
 
-    const isLoading = expensesLoading || productionLoading || salesLoading || cattleLoading
+    // compute current palm oil stock: inventory (if present) + total produced litres - total sold litres
+    const inventoryPalm = inventories.find(i => (i.productName || '').toLowerCase().includes('palm oil') || (i.productName || '').toLowerCase().includes('palm'))
+    const baseInventory = inventoryPalm ? Number(inventoryPalm.currentQuantity || 0) : 0
+    const producedLitres = production.reduce((s, p) => s + ((p.unit === 'Litres' || (p.item||'').toLowerCase().includes('palm oil')) ? Number(p.quantity || 0) : 0), 0)
+    const soldLitres = sales.reduce((s, p) => s + (Number(p.quantityLitres || 0)), 0)
+    const currentPalmOilStock = Math.max(0, baseInventory + producedLitres - soldLitres)
+
+    const isLoading = expensesLoading || productionLoading || salesLoading || cattleLoading || palmHarvestsLoading
 
     return (
         <div>
@@ -90,7 +120,40 @@ export default function FounderDashboard()
                 <p className="text-gray-600 mt-2">Complete system overview and daily reports</p>
             </div>
 
-            {/* Summary Cards */}
+            {/* Reports Quick Access Section */}
+            <div className="grid grid-cols-4 gap-4 mb-8">
+                <Link to="/founder/reports" className="card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-lg transition-shadow cursor-pointer">
+                    <div className="flex items-center gap-3 mb-2">
+                        <FileText className="text-blue-600" size={24} />
+                        <h3 className="font-bold text-gray-900">Weekly Reports</h3>
+                    </div>
+                    <p className="text-xs text-gray-600">View all weekly reports and trends</p>
+                </Link>
+
+                <Link to="/founder/reports/daily" className="card bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:shadow-lg transition-shadow cursor-pointer">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Calendar className="text-green-600" size={24} />
+                        <h3 className="font-bold text-gray-900">Daily Report</h3>
+                    </div>
+                    <p className="text-xs text-gray-600">Today's summary and activities</p>
+                </Link>
+
+                <Link to="/founder/reports/monthly" className="card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:shadow-lg transition-shadow cursor-pointer">
+                    <div className="flex items-center gap-3 mb-2">
+                        <TrendingUp className="text-purple-600" size={24} />
+                        <h3 className="font-bold text-gray-900">Monthly Report</h3>
+                    </div>
+                    <p className="text-xs text-gray-600">Month to date performance</p>
+                </Link>
+
+                <Link to="/founder/reports/yearly" className="card bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 hover:shadow-lg transition-shadow cursor-pointer">
+                    <div className="flex items-center gap-3 mb-2">
+                        <BarChart3 className="text-amber-600" size={24} />
+                        <h3 className="font-bold text-gray-900">Yearly Report</h3>
+                    </div>
+                    <p className="text-xs text-gray-600">Annual overview and analysis</p>
+                </Link>
+            </div>
             <div className="grid grid-cols-4 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-6">
                     <p className="text-green-600 text-sm font-medium">Total Expenses</p>
@@ -115,6 +178,12 @@ export default function FounderDashboard()
                     <p className="text-3xl font-bold text-amber-900 mt-2">{cattle.length}</p>
                     <p className="text-xs text-amber-700 mt-2">Total in system</p>
                 </div>
+
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
+                    <p className="text-blue-600 text-sm font-medium">Current Palm Oil Stock</p>
+                    <p className="text-3xl font-bold text-blue-900 mt-2">{currentPalmOilStock.toLocaleString()} L</p>
+                    <p className="text-xs text-blue-700 mt-2">Adjusted by production & sales</p>
+                </div>
             </div>
 
             {/* Daily Reports */}
@@ -127,7 +196,11 @@ export default function FounderDashboard()
                     ) : (
                         <div className="space-y-2">
                             {todayExpenses.map(e => (
-                                <div key={e.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <div 
+                                    key={e.id} 
+                                    className="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-red-50 cursor-pointer transition-colors"
+                                    onClick={() => { setSelectedItem(e); setSelectedItemType('expense'); }}
+                                >
                                     <div>
                                         <p className="font-semibold text-gray-900">{e.category}</p>
                                         <p className="text-xs text-gray-600">{e.description}</p>
@@ -151,7 +224,11 @@ export default function FounderDashboard()
                     ) : (
                         <div className="space-y-2">
                             {todayProduction.map(p => (
-                                <div key={p.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <div 
+                                    key={p.id} 
+                                    className="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-green-50 cursor-pointer transition-colors"
+                                    onClick={() => { setSelectedItem(p); setSelectedItemType('production'); }}
+                                >
                                     <div>
                                         <p className="font-semibold text-gray-900">{p.item}</p>
                                         <p className="text-xs text-gray-600">{p.quantity} {p.unit}</p>
@@ -175,7 +252,11 @@ export default function FounderDashboard()
                     ) : (
                         <div className="space-y-2">
                             {todaySales.map(s => (
-                                <div key={s.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <div 
+                                    key={s.id} 
+                                    className="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-blue-50 cursor-pointer transition-colors"
+                                    onClick={() => { setSelectedItem(s); setSelectedItemType('sale'); }}
+                                >
                                     <div>
                                         <p className="font-semibold text-gray-900">{s.product}</p>
                                         <p className="text-xs text-gray-600">{s.customerName}</p>
@@ -183,6 +264,31 @@ export default function FounderDashboard()
                                     <p className="font-bold text-blue-600">{formatCurrency(s.totalPrice)}</p>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Today's Harvests */}
+                <div className="card bg-gradient-to-br from-palm-50 to-palm-100 border border-palm-200">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Harvests</h2>
+                    {todayHarvests.length === 0 ? (
+                        <p className="text-gray-600 text-sm">No palm harvests recorded today</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {todayHarvests.map(h => (
+                                <div key={h.id} className="flex items-start gap-2 p-2 bg-white rounded border border-palm-200">
+                                    <div className="flex-1">
+                                        <p className="font-semibold text-gray-900">{h.harvestId}</p>
+                                        <p className="text-xs text-gray-600">{h.numberOfBunches || 0} bunches • {h.totalWeightKg || 0} kg</p>
+                                        <p className="text-xs text-gray-500 mt-1">Team: {h.harvestTeam || 'Field team'}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="border-t pt-2 mt-2">
+                                <p className="text-sm font-semibold text-palm-900">
+                                    Total Harvests: {todayHarvests.length}
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -235,6 +341,14 @@ export default function FounderDashboard()
                         <div className="flex justify-between items-center p-2 bg-purple-50 rounded border border-purple-200">
                             <span className="text-gray-700 font-semibold">Daily Operations</span>
                             <span className="font-bold text-purple-600">{dailyOperations.length}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-blue-50 rounded border border-blue-200">
+                            <span className="text-gray-700 font-semibold">Production Entries</span>
+                            <span className="font-bold text-blue-600">{production.length}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-palm-50 rounded border border-palm-200">
+                            <span className="text-gray-700 font-semibold">Palm Harvests</span>
+                            <span className="font-bold text-palm-600">{palmHarvests.length}</span>
                         </div>
                     </div>
                 </div>
@@ -335,6 +449,135 @@ export default function FounderDashboard()
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Detail View Modal */}
+                {selectedItem && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-2xl font-bold text-gray-900 capitalize">
+                                    {selectedItemType} Details
+                                </h2>
+                                <button
+                                    onClick={() => { setSelectedItem(null); setSelectedItemType(null); }}
+                                    className="text-gray-600 hover:text-gray-900"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                {selectedItemType === 'expense' && selectedItem && (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Category</p>
+                                                <p className="text-lg text-gray-900">{selectedItem.category}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Amount</p>
+                                                <p className="text-lg font-bold text-red-600">{formatCurrency(selectedItem.amount)}</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-600 font-semibold">Description</p>
+                                            <p className="text-gray-900">{selectedItem.description}</p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Date</p>
+                                                <p className="text-gray-900">{formatDate(selectedItem.date)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Payment Method</p>
+                                                <p className="text-gray-900">{selectedItem.paymentMethod || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                                
+                                {selectedItemType === 'sale' && selectedItem && (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Customer</p>
+                                                <p className="text-lg text-gray-900">{selectedItem.customerName}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Total Price</p>
+                                                <p className="text-lg font-bold text-blue-600">{formatCurrency(selectedItem.totalPrice)}</p>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Product</p>
+                                                <p className="text-gray-900">{selectedItem.product}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Quantity (Litres)</p>
+                                                <p className="text-gray-900">{selectedItem.quantityLitres} L</p>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Unit Price</p>
+                                                <p className="text-gray-900">{formatCurrency(selectedItem.unitPrice)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Payment Status</p>
+                                                <span className={`px-3 py-1 rounded text-sm font-semibold ${selectedItem.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                    {selectedItem.paymentStatus}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-600 font-semibold">Date</p>
+                                            <p className="text-gray-900">{formatDate(selectedItem.saleDate)}</p>
+                                        </div>
+                                    </>
+                                )}
+                                
+                                {selectedItemType === 'production' && selectedItem && (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Item</p>
+                                                <p className="text-lg text-gray-900">{selectedItem.item}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Total Value</p>
+                                                <p className="text-lg font-bold text-green-600">{formatCurrency(selectedItem.quantity * selectedItem.cost)}</p>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Quantity</p>
+                                                <p className="text-gray-900">{selectedItem.quantity} {selectedItem.unit}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600 font-semibold">Unit Cost</p>
+                                                <p className="text-gray-900">{formatCurrency(selectedItem.cost)}</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-600 font-semibold">Date</p>
+                                            <p className="text-gray-900">{formatDate(selectedItem.date)}</p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            
+                            <div className="mt-6 flex gap-3">
+                                <button
+                                    onClick={() => { setSelectedItem(null); setSelectedItemType(null); }}
+                                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 font-semibold"
+                                >
+                                    Close
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -12,8 +12,32 @@ export default function ManagerDashboard()
 
     const { data: recentOperations = [] } = useQuery({
         queryKey: ['daily-operations'],
-        queryFn: () => apiClient.get('/daily-operations').then(r => r.data),
-        select: (data) => data.slice(0, 5)
+        queryFn: () => apiClient.get('/daily-operations').then(r => r.data || []),
+        select: (data) => (Array.isArray(data) ? data.slice(0, 5) : [])
+    })
+
+    const { data: recentHarvests = [] } = useQuery({
+        queryKey: ['palm-harvests'],
+        queryFn: () => apiClient.get('/palm-harvests').then(r => r.data || []),
+        select: (data) => (Array.isArray(data) ? data.slice(0, 5) : [])
+    })
+
+    const { data: recentProduction = [] } = useQuery({
+        queryKey: ['production'],
+        queryFn: () => apiClient.get('/production').then(r => r.data || []),
+        select: (data) => (Array.isArray(data) ? data.slice(0, 5) : [])
+    })
+
+    const { data: recentSales = [] } = useQuery({
+        queryKey: ['sales'],
+        queryFn: () => apiClient.get('/sales').then(r => r.data || []),
+        select: (data) => (Array.isArray(data) ? data.slice(0, 5) : [])
+    })
+
+    // fetch all sales to compute stock adjustments
+    const { data: allSales = [] } = useQuery({
+        queryKey: ['sales-all'],
+        queryFn: () => apiClient.get('/sales').then(r => r.data || [])
     })
 
     const dashboard = data || {}
@@ -36,7 +60,14 @@ export default function ManagerDashboard()
 
                 <div className="card">
                     <p className="text-gray-600 text-sm">Current Stock</p>
-                    <p className="text-3xl font-bold text-blue-600 mt-2">{dashboard.currentPalmOilStockLitres?.toLocaleString()} L</p>
+                    {
+                        (() => {
+                            const baseStock = Number(dashboard.currentPalmOilStockLitres) || 0
+                            const soldLitres = Array.isArray(allSales) ? allSales.reduce((s, it) => s + (Number(it.quantityLitres) || 0), 0) : 0
+                            const displayed = Math.max(0, baseStock - soldLitres)
+                            return <p className="text-3xl font-bold text-blue-600 mt-2">{displayed.toLocaleString()} L</p>
+                        })()
+                    }
                 </div>
 
                 <div className="card flex items-center justify-between">
@@ -96,6 +127,128 @@ export default function ManagerDashboard()
                             + Add Expense
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-6 mt-8">
+                <div className="card">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-gray-900">Recent Daily Operations</h3>
+                        <Link to="/manager/daily-operations" className="text-sm font-medium text-green-700 hover:text-green-800">
+                            View all
+                        </Link>
+                    </div>
+
+                    {recentOperations.length === 0 ? (
+                        <p className="text-sm text-gray-500">No daily operations recorded yet.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {recentOperations.map((op) => (
+                                <div key={op.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                    <div className="flex justify-between items-start gap-3">
+                                        <div>
+                                            <p className="font-semibold text-gray-900">{op.operationType}</p>
+                                            <p className="text-xs text-gray-600">{new Date(op.date).toLocaleDateString()}</p>
+                                        </div>
+                                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                            {op.performedBy || 'Manager'}
+                                        </span>
+                                    </div>
+                                    <p className="mt-2 text-sm text-gray-700">{op.description || 'No details provided.'}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="card">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-gray-900">Recent Sales</h3>
+                        <Link to="/manager/sales" className="text-sm font-medium text-green-700 hover:text-green-800">
+                            View all
+                        </Link>
+                    </div>
+
+                    {recentSales.length === 0 ? (
+                        <p className="text-sm text-gray-500">No sales recorded yet.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {recentSales.map((sale) => (
+                                <div key={sale.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                    <div className="flex justify-between items-start gap-3">
+                                        <div>
+                                            <p className="font-semibold text-gray-900">{sale.customerName}</p>
+                                            <p className="text-xs text-gray-600">{new Date(sale.saleDate).toLocaleDateString()}</p>
+                                        </div>
+                                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                            {sale.paymentStatus}
+                                        </span>
+                                    </div>
+                                    <p className="mt-2 text-sm text-gray-700">{sale.product} • {Number(sale.quantityLitres).toFixed(2)} L • {sale.totalPrice ? `$${Number(sale.totalPrice).toLocaleString()}` : '$0'}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="card">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-gray-900">Recent Production</h3>
+                        <Link to="/manager/production" className="text-sm font-medium text-green-700 hover:text-green-800">
+                            View all
+                        </Link>
+                    </div>
+
+                    {recentProduction.length === 0 ? (
+                        <p className="text-sm text-gray-500">No production recorded yet.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {recentProduction.map((item) => (
+                                <div key={item.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                    <div className="flex justify-between items-start gap-3">
+                                        <div>
+                                            <p className="font-semibold text-gray-900">{item.item}</p>
+                                            <p className="text-xs text-gray-600">{new Date(item.date).toLocaleDateString()}</p>
+                                        </div>
+                                        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                                            {item.category}
+                                        </span>
+                                    </div>
+                                    <p className="mt-2 text-sm text-gray-700">{item.quantity} {item.unit} • {item.cost ? `Cost ${item.cost}` : ''}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="card">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-gray-900">Recent Palm Harvests</h3>
+                        <Link to="/manager/palm-harvest" className="text-sm font-medium text-green-700 hover:text-green-800">
+                            View all
+                        </Link>
+                    </div>
+
+                    {recentHarvests.length === 0 ? (
+                        <p className="text-sm text-gray-500">No palm harvests recorded yet.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {recentHarvests.map((harvest) => (
+                                <div key={harvest.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                    <div className="flex justify-between items-start gap-3">
+                                        <div>
+                                            <p className="font-semibold text-gray-900">{harvest.harvestId}</p>
+                                            <p className="text-xs text-gray-600">{new Date(harvest.harvestDate).toLocaleDateString()}</p>
+                                        </div>
+                                        <span className="text-xs px-2 py-1 rounded-full bg-palm-100 text-palm-700">
+                                            {harvest.totalWeightKg || 0} KG
+                                        </span>
+                                    </div>
+                                    <p className="mt-2 text-sm text-gray-700">{harvest.harvestTeam || 'Harvest team'} • {harvest.numberOfBunches || 0} bunches</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

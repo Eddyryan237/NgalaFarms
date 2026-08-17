@@ -114,28 +114,79 @@ public static class DatabaseSeeder
         }
 
         // Plantations
-        if (!await context.Plantations.AnyAsync())
+        var desiredPlantations = new[]
         {
-            context.Plantations.AddRange(
-                new Plantation { PlantationId = "PLT-0001", Name = "Main Plantation", Location = "Ngala Block A", TotalAreaHectares = 50, NumberOfTrees = 2500, PlantingDate = new DateTime(2010, 3, 1), PalmVariety = "Tenera", Status = PlantationStatus.Active },
-                new Plantation { PlantationId = "PLT-0002", Name = "North Plantation", Location = "Ngala Block B", TotalAreaHectares = 30, NumberOfTrees = 1500, PlantingDate = new DateTime(2015, 6, 1), PalmVariety = "Dura", Status = PlantationStatus.Active }
-            );
+            new { PlantationId = "PLT-0001", Name = "Field 1", Location = "Field 1", TotalAreaHectares = 50, NumberOfTrees = 2500, PlantingDate = new DateTime(2010, 3, 1), PalmVariety = "Tenera" },
+            new { PlantationId = "PLT-0002", Name = "Field 2", Location = "Field 2", TotalAreaHectares = 48, NumberOfTrees = 2400, PlantingDate = new DateTime(2011, 4, 1), PalmVariety = "Tenera" },
+            new { PlantationId = "PLT-0003", Name = "Field 3", Location = "Field 3", TotalAreaHectares = 52, NumberOfTrees = 2600, PlantingDate = new DateTime(2012, 5, 1), PalmVariety = "Tenera" },
+            new { PlantationId = "PLT-0004", Name = "Field 4", Location = "Field 4", TotalAreaHectares = 46, NumberOfTrees = 2300, PlantingDate = new DateTime(2013, 6, 1), PalmVariety = "Dura" },
+            new { PlantationId = "PLT-0005", Name = "Field 5", Location = "Field 5", TotalAreaHectares = 55, NumberOfTrees = 2750, PlantingDate = new DateTime(2014, 7, 1), PalmVariety = "Tenera" },
+            new { PlantationId = "PLT-0006", Name = "Field 6", Location = "Field 6", TotalAreaHectares = 60, NumberOfTrees = 3000, PlantingDate = new DateTime(2015, 8, 1), PalmVariety = "Dura" }
+        };
+
+        var existingPlantations = await context.Plantations.OrderBy(p => p.Id).ToListAsync();
+        if (existingPlantations.Count == 0)
+        {
+            context.Plantations.AddRange(desiredPlantations.Select(p => new Plantation
+            {
+                PlantationId = p.PlantationId,
+                Name = p.Name,
+                Location = p.Location,
+                TotalAreaHectares = p.TotalAreaHectares,
+                NumberOfTrees = p.NumberOfTrees,
+                PlantingDate = p.PlantingDate,
+                PalmVariety = p.PalmVariety,
+                Status = PlantationStatus.Active
+            }));
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            for (var i = 0; i < desiredPlantations.Length && i < existingPlantations.Count; i++)
+            {
+                var current = existingPlantations[i];
+                var desired = desiredPlantations[i];
+                current.PlantationId = desired.PlantationId;
+                current.Name = desired.Name;
+                current.Location = desired.Location;
+                current.TotalAreaHectares = desired.TotalAreaHectares;
+                current.NumberOfTrees = desired.NumberOfTrees;
+                current.PlantingDate = desired.PlantingDate;
+                current.PalmVariety = desired.PalmVariety;
+                current.Status = PlantationStatus.Active;
+            }
+
+            if (existingPlantations.Count < desiredPlantations.Length)
+            {
+                var missing = desiredPlantations.Skip(existingPlantations.Count).Select(p => new Plantation
+                {
+                    PlantationId = p.PlantationId,
+                    Name = p.Name,
+                    Location = p.Location,
+                    TotalAreaHectares = p.TotalAreaHectares,
+                    NumberOfTrees = p.NumberOfTrees,
+                    PlantingDate = p.PlantingDate,
+                    PalmVariety = p.PalmVariety,
+                    Status = PlantationStatus.Active
+                });
+                context.Plantations.AddRange(missing);
+            }
+
             await context.SaveChangesAsync();
         }
 
         // Palm Blocks
         if (!await context.PalmBlocks.AnyAsync())
         {
-            var plt1 = await context.Plantations.FirstAsync(p => p.PlantationId == "PLT-0001");
-            var plt2 = await context.Plantations.FirstAsync(p => p.PlantationId == "PLT-0002");
-            context.PalmBlocks.AddRange(
-                new PalmBlock { BlockId = "A1", Name = "Block A1", PlantationId = plt1.Id, AreaHectares = 12, NumberOfTrees = 600, PlantingDate = new DateTime(2010, 3, 1) },
-                new PalmBlock { BlockId = "A2", Name = "Block A2", PlantationId = plt1.Id, AreaHectares = 13, NumberOfTrees = 650, PlantingDate = new DateTime(2010, 3, 1) },
-                new PalmBlock { BlockId = "A3", Name = "Block A3", PlantationId = plt1.Id, AreaHectares = 12, NumberOfTrees = 600, PlantingDate = new DateTime(2010, 6, 1) },
-                new PalmBlock { BlockId = "A4", Name = "Block A4", PlantationId = plt1.Id, AreaHectares = 13, NumberOfTrees = 650, PlantingDate = new DateTime(2010, 9, 1) },
-                new PalmBlock { BlockId = "B1", Name = "Block B1", PlantationId = plt2.Id, AreaHectares = 15, NumberOfTrees = 750, PlantingDate = new DateTime(2015, 6, 1) },
-                new PalmBlock { BlockId = "B2", Name = "Block B2", PlantationId = plt2.Id, AreaHectares = 15, NumberOfTrees = 750, PlantingDate = new DateTime(2015, 9, 1) }
-            );
+            var plantedFields = await context.Plantations.OrderBy(p => p.PlantationId).ToListAsync();
+            var blocks = new List<PalmBlock>();
+            for (var i = 0; i < plantedFields.Count; i++)
+            {
+                var field = plantedFields[i];
+                blocks.Add(new PalmBlock { BlockId = $"F{i + 1}", Name = $"Field {i + 1} Block", PlantationId = field.Id, AreaHectares = 12 + i, NumberOfTrees = 600 + (i * 50), PlantingDate = field.PlantingDate });
+            }
+
+            context.PalmBlocks.AddRange(blocks);
             await context.SaveChangesAsync();
         }
 
@@ -168,12 +219,12 @@ public static class DatabaseSeeder
         // Palm Harvests (recent)
         if (!await context.PalmHarvests.AnyAsync())
         {
-            var block1 = await context.PalmBlocks.FirstAsync(b => b.BlockId == "A1");
-            var plt1 = await context.Plantations.FirstAsync(p => p.PlantationId == "PLT-0001");
+            var firstField = await context.Plantations.FirstAsync(p => p.PlantationId == "PLT-0001");
+            var firstBlock = await context.PalmBlocks.FirstAsync(b => b.PlantationId == firstField.Id);
             context.PalmHarvests.AddRange(
-                new PalmHarvest { HarvestId = "HAR-0001", PlantationId = plt1.Id, PalmBlockId = block1.Id, HarvestDate = new DateTime(2026, 7, 5), NumberOfBunches = 420, TotalWeightKg = 2650, HarvestTeam = "Team Alpha", LaborCost = 45000, IsProcessed = true },
-                new PalmHarvest { HarvestId = "HAR-0002", PlantationId = plt1.Id, HarvestDate = new DateTime(2026, 7, 19), NumberOfBunches = 450, TotalWeightKg = 2850, HarvestTeam = "Team Alpha", LaborCost = 48000, IsProcessed = true },
-                new PalmHarvest { HarvestId = "HAR-0003", PlantationId = plt1.Id, PalmBlockId = block1.Id, HarvestDate = new DateTime(2026, 8, 2), NumberOfBunches = 380, TotalWeightKg = 2400, HarvestTeam = "Team Beta", LaborCost = 42000, IsProcessed = false }
+                new PalmHarvest { HarvestId = "HAR-0001", PlantationId = firstField.Id, PalmBlockId = firstBlock.Id, HarvestDate = new DateTime(2026, 7, 5), NumberOfBunches = 420, TotalWeightKg = 2650, HarvestTeam = "Team Alpha", LaborCost = 45000, IsProcessed = true },
+                new PalmHarvest { HarvestId = "HAR-0002", PlantationId = firstField.Id, HarvestDate = new DateTime(2026, 7, 19), NumberOfBunches = 450, TotalWeightKg = 2850, HarvestTeam = "Team Alpha", LaborCost = 48000, IsProcessed = true },
+                new PalmHarvest { HarvestId = "HAR-0003", PlantationId = firstField.Id, PalmBlockId = firstBlock.Id, HarvestDate = new DateTime(2026, 8, 2), NumberOfBunches = 380, TotalWeightKg = 2400, HarvestTeam = "Team Beta", LaborCost = 42000, IsProcessed = false }
             );
             await context.SaveChangesAsync();
         }
