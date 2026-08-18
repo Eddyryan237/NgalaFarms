@@ -129,9 +129,9 @@ export default function PalmHarvestPage()
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Palm Harvesting</h1>
-                <button onClick={() => { setEditingId(null); setSelectedHarvest(null); setShowModal(true); reset({ plantationId: '', palmBlockId: '', harvestDate: new Date().toISOString().split('T')[0], numberOfBunches: '', totalWeightKg: '', harvestTeam: '', laborCost: '', notes: '' }) }} className="btn-primary flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Palm Harvesting</h1>
+                <button onClick={() => { setEditingId(null); setSelectedHarvest(null); setShowModal(true); reset({ plantationId: '', palmBlockId: '', harvestDate: new Date().toISOString().split('T')[0], numberOfBunches: '', totalWeightKg: '', harvestTeam: '', laborCost: '', notes: '' }) }} className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
                     <Plus size={18} />
                     Record Harvest
                 </button>

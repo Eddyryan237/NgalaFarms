@@ -22,13 +22,18 @@ export const palmHarvestSchema = z.object({
 
 export const salesSchema = z.object({
     customerId: z.string().optional().or(z.literal('')),
+    customerName: z.string().optional(),
+    customerPhone: z.string().optional(),
+    customerEmail: z.string().optional(),
+    customerAddress: z.string().optional(),
+    sellerName: z.string().min(1, 'Seller name is required'),
     saleDate: z.string().min(1, 'Sale date is required'),
     product: z.enum(['Palm Oil', 'Palm Kernel Oil', 'Fresh Fruit Bunch'], 'Product is required'),
     quantityLitres: z.coerce.number().min(0.1, 'Quantity must be greater than 0'),
     unitPrice: z.coerce.number().min(0, 'Price must be at least 0'),
     paymentMethod: z.enum(['Cash', 'BankTransfer', 'MobileMoney'], 'Payment method is required'),
     paymentStatus: z.enum(['Paid', 'Pending', 'PartiallyPaid', 'Overdue'], 'Payment status is required'),
-    notes: z.string().optional()
+    notes: z.string().optional().default('I hereby confirm that I have inspected and tasted the palm oil prior to purchase. I have verified the color, texture and taste of the product and found it satisfactory. I accept the product in its present condition and acknowledge that the sale was completed after my verification and approval')
 })
 
 export const expenseSchema = z.object({

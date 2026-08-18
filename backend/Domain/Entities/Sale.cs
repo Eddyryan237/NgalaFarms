@@ -8,6 +8,11 @@ public class Sale : BaseEntity
     public int? CustomerId { get; set; }
     public Customer? Customer { get; set; }
     public string CustomerName { get; set; } = string.Empty;
+    public string CustomerPhone { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
+    public string CustomerAddress { get; set; } = string.Empty;
+    public string CustomerType { get; set; } = "Customer";
+    public string SellerName { get; set; } = string.Empty;
     public string Product { get; set; } = "Palm Oil";
     public decimal QuantityLitres { get; set; }
     public decimal UnitPrice { get; set; }

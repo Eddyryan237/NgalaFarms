@@ -20,7 +20,11 @@ public static class DependencyInjection
         // Database provider: default to SQLite for local development.
         // To switch to PostgreSQL, install the Npgsql EF Core provider and set DatabaseProvider=Postgres in configuration.
         services.AddDbContext<NgalaFarmsDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("DefaultConnection") ?? "Data Source=agriculture.db"));
+        {
+            options.UseSqlite(configuration.GetConnectionString("DefaultConnection") ?? "Data Source=agriculture.db");
+            options.ConfigureWarnings(w =>
+                w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
 
         // Identity
         services.AddIdentity<ApplicationUser, IdentityRole>(options =>

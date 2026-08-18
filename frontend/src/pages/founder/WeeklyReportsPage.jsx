@@ -10,10 +10,11 @@ export default function WeeklyReportsPage()
         queryFn: () => apiClient.get('/reports').then(r => r.data || []).catch(() => [])
     })
 
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount || 0))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
     const formatDate = (date) => new Date(date).toLocaleDateString()
 
-    if (isLoading) {
+    if (isLoading)
+    {
         return (
             <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">Weekly Reports</h1>
@@ -46,16 +47,17 @@ export default function WeeklyReportsPage()
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {reports.map((report) => {
+                    {reports.map((report) =>
+                    {
                         const revenue = report.totalRevenue || 0
                         const expenses = report.totalExpenses || 0
                         const profit = revenue - expenses
                         const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(2) : 0
 
                         return (
-                            <Link 
-                                key={report.id} 
-                                to={`/founder/reports/${report.id}`} 
+                            <Link
+                                key={report.id}
+                                to={`/founder/reports/${report.id}`}
                                 className="card hover:shadow-lg transition-shadow block group"
                             >
                                 <div className="flex justify-between items-start gap-6">

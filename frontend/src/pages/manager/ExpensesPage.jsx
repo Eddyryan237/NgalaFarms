@@ -112,7 +112,7 @@ export default function ExpensesPage()
     }
 
     const formatDate = (date) => new Date(date).toLocaleDateString()
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
 
     const filteredExpenses = expenses.filter(e =>
     {
@@ -141,7 +141,7 @@ export default function ExpensesPage()
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div className="card">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Division</label>
                             <select

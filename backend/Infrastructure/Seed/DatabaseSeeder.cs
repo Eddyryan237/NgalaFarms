@@ -88,15 +88,8 @@ public static class DatabaseSeeder
             }
         }
 
-        // Ensure basic customers exist (Sales depends on these)
-        if (!await context.Customers.AnyAsync())
-        {
-            context.Customers.AddRange(
-                    new Customer { CustomerId = "CUST-0001", Name = "Local Distributor", Email = "dist@ngalafarms.com", Phone = "+237111111111", Address = "Ngala Market" },
-                    new Customer { CustomerId = "CUST-0002", Name = "Retailer Outlet", Email = "retail@ngalafarms.com", Phone = "+237222222222", Address = "Ngala Town" }
-            );
-            await context.SaveChangesAsync();
-        }
+        // Customer records are managed by the manager and added when a sale is recorded.
+        // No default distributor/retailer entries are seeded, so every customer can be tracked with its own credentials.
 
         // Company Settings
         if (!await context.CompanySettings.AnyAsync())
@@ -242,11 +235,9 @@ public static class DatabaseSeeder
         // Sales
         if (!await context.Sales.AnyAsync())
         {
-            var cust1 = await context.Customers.FirstOrDefaultAsync(c => c.CustomerId == "CUST-0001");
-            var cust2 = await context.Customers.FirstOrDefaultAsync(c => c.CustomerId == "CUST-0002");
             context.Sales.AddRange(
-                new Sale { InvoiceId = "INV-0001", CustomerId = cust1 != null ? cust1.Id : null, CustomerName = cust1 != null ? cust1.Name : "Local Distributor", Product = "Palm Oil", QuantityLitres = 200, UnitPrice = 1800, TotalPrice = 360000, PaymentMethod = PaymentMethod.BankTransfer, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 7, 15) },
-                new Sale { InvoiceId = "INV-0002", CustomerId = cust2 != null ? cust2.Id : null, CustomerName = cust2 != null ? cust2.Name : "Retailer Outlet", Product = "Palm Oil", QuantityLitres = 150, UnitPrice = 1850, TotalPrice = 277500, PaymentMethod = PaymentMethod.Cash, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 7, 28) },
+                new Sale { InvoiceId = "INV-0001", CustomerName = "Walk-in Customer", Product = "Palm Oil", QuantityLitres = 200, UnitPrice = 1800, TotalPrice = 360000, PaymentMethod = PaymentMethod.BankTransfer, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 7, 15) },
+                new Sale { InvoiceId = "INV-0002", CustomerName = "Retail Buyer", Product = "Palm Oil", QuantityLitres = 150, UnitPrice = 1850, TotalPrice = 277500, PaymentMethod = PaymentMethod.Cash, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 7, 28) },
                 new Sale { InvoiceId = "INV-0003", CustomerName = "Direct Customer", Product = "Palm Oil", QuantityLitres = 80, UnitPrice = 1900, TotalPrice = 152000, PaymentMethod = PaymentMethod.MobileMoney, PaymentStatus = PaymentStatus.Paid, SaleDate = new DateTime(2026, 8, 5) }
             );
             await context.SaveChangesAsync();

@@ -10,24 +10,29 @@ export default function YearlyReportPage()
     const [loading, setLoading] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null)
 
-    const generate = async () => {
+    const generate = async () =>
+    {
         setLoading(true)
-        try {
+        try
+        {
             const res = await apiClient.get(`/reports/yearly?years=${years}`)
             setReport(res.data)
-        } catch (err) {
+        } catch (err)
+        {
             alert('Failed to generate report: ' + (err.response?.data?.message || err.message))
             setReport(null)
-        } finally { 
-            setLoading(false) 
+        } finally
+        {
+            setLoading(false)
         }
     }
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         generate()
     }, [])
 
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount || 0))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString()
 
     const totalExpenses = report?.expenses?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0
@@ -62,18 +67,18 @@ export default function YearlyReportPage()
                     <div className="flex items-center gap-2">
                         <Calendar size={20} className="text-palm-600" />
                         <label className="text-gray-700 font-semibold">Last</label>
-                        <input 
-                            type="number" 
-                            min={1} 
+                        <input
+                            type="number"
+                            min={1}
                             max={10}
-                            value={years} 
-                            onChange={e => setYears(Number(e.target.value))} 
-                            className="input-field w-24" 
+                            value={years}
+                            onChange={e => setYears(Number(e.target.value))}
+                            className="input-field w-24"
                         />
                         <span className="text-gray-700">year(s)</span>
                     </div>
-                    <button 
-                        onClick={generate} 
+                    <button
+                        onClick={generate}
                         disabled={loading}
                         className="btn-primary disabled:opacity-50"
                     >
@@ -127,10 +132,10 @@ export default function YearlyReportPage()
                             {report.expenses && report.expenses.length > 0 ? (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                     {report.expenses.slice(0, 20).map((e, idx) => (
-                                        <div 
-                                            key={e.id || idx} 
+                                        <div
+                                            key={e.id || idx}
                                             className="p-3 bg-red-50 rounded border border-red-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...e, type: 'expense'})}
+                                            onClick={() => setSelectedItem({ ...e, type: 'expense' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -154,10 +159,10 @@ export default function YearlyReportPage()
                             {report.sales && report.sales.length > 0 ? (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                     {report.sales.slice(0, 20).map((s, idx) => (
-                                        <div 
-                                            key={s.id || idx} 
+                                        <div
+                                            key={s.id || idx}
                                             className="p-3 bg-green-50 rounded border border-green-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...s, type: 'sale'})}
+                                            onClick={() => setSelectedItem({ ...s, type: 'sale' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -181,10 +186,10 @@ export default function YearlyReportPage()
                             {report.production && report.production.length > 0 ? (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                     {report.production.slice(0, 20).map((p, idx) => (
-                                        <div 
-                                            key={p.id || idx} 
+                                        <div
+                                            key={p.id || idx}
                                             className="p-3 bg-blue-50 rounded border border-blue-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...p, type: 'production'})}
+                                            onClick={() => setSelectedItem({ ...p, type: 'production' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -208,10 +213,10 @@ export default function YearlyReportPage()
                             {report.harvests && report.harvests.length > 0 ? (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                     {report.harvests.slice(0, 20).map((h, idx) => (
-                                        <div 
-                                            key={h.id || idx} 
+                                        <div
+                                            key={h.id || idx}
                                             className="p-3 bg-palm-50 rounded border border-palm-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...h, type: 'harvest'})}
+                                            onClick={() => setSelectedItem({ ...h, type: 'harvest' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -257,16 +262,17 @@ export default function YearlyReportPage()
                     <div className="bg-white rounded-lg p-6 max-w-md w-full">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold text-gray-900 capitalize">{selectedItem.type} Details</h2>
-                            <button 
+                            <button
                                 onClick={() => setSelectedItem(null)}
                                 className="text-gray-600 hover:text-gray-900 text-2xl"
                             >
                                 ×
                             </button>
                         </div>
-                        
+
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-                            {Object.entries(selectedItem).map(([key, value]) => {
+                            {Object.entries(selectedItem).map(([key, value]) =>
+                            {
                                 if (key === 'type' || value === null || value === undefined) return null
                                 return (
                                     <div key={key} className="border-b pb-2">
@@ -276,8 +282,8 @@ export default function YearlyReportPage()
                                 )
                             })}
                         </div>
-                        
-                        <button 
+
+                        <button
                             onClick={() => setSelectedItem(null)}
                             className="btn-secondary w-full mt-4"
                         >

@@ -82,7 +82,7 @@ export default function FounderDashboard()
     }
 
     const formatDate = (date) => new Date(date).toLocaleDateString()
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount || 0))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -90,12 +90,14 @@ export default function FounderDashboard()
     const todayExpenses = expenses.filter(e => new Date(e.createdAt).setHours(0, 0, 0, 0) === today.getTime())
     const todayProduction = production.filter(p => new Date(p.date).setHours(0, 0, 0, 0) === today.getTime())
     const todaySales = sales.filter(s => new Date(s.saleDate).setHours(0, 0, 0, 0) === today.getTime())
-    const todayOperations = dailyOperations.filter(o => {
+    const todayOperations = dailyOperations.filter(o =>
+    {
         const rowDate = new Date(o.date)
         return rowDate && rowDate.setHours(0, 0, 0, 0) === today.getTime()
     })
 
-    const todayHarvests = palmHarvests.filter(h => {
+    const todayHarvests = palmHarvests.filter(h =>
+    {
         const rowDate = new Date(h.harvestDate)
         return rowDate && rowDate.setHours(0, 0, 0, 0) === today.getTime()
     })
@@ -107,7 +109,7 @@ export default function FounderDashboard()
     // compute current palm oil stock: inventory (if present) + total produced litres - total sold litres
     const inventoryPalm = inventories.find(i => (i.productName || '').toLowerCase().includes('palm oil') || (i.productName || '').toLowerCase().includes('palm'))
     const baseInventory = inventoryPalm ? Number(inventoryPalm.currentQuantity || 0) : 0
-    const producedLitres = production.reduce((s, p) => s + ((p.unit === 'Litres' || (p.item||'').toLowerCase().includes('palm oil')) ? Number(p.quantity || 0) : 0), 0)
+    const producedLitres = production.reduce((s, p) => s + ((p.unit === 'Litres' || (p.item || '').toLowerCase().includes('palm oil')) ? Number(p.quantity || 0) : 0), 0)
     const soldLitres = sales.reduce((s, p) => s + (Number(p.quantityLitres || 0)), 0)
     const currentPalmOilStock = Math.max(0, baseInventory + producedLitres - soldLitres)
 
@@ -116,32 +118,32 @@ export default function FounderDashboard()
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-4xl font-bold text-gray-900">Founder Dashboard</h1>
-                <p className="text-gray-600 mt-2">Complete system overview and daily reports</p>
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Founder Dashboard</h1>
+                <p className="text-gray-600 text-sm md:text-base mt-2">Complete system overview and daily reports</p>
             </div>
 
             {/* Reports Quick Access Section */}
-            <div className="grid grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <Link to="/founder/reports" className="card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="flex items-center gap-3 mb-2">
-                        <FileText className="text-blue-600" size={24} />
-                        <h3 className="font-bold text-gray-900">Weekly Reports</h3>
+                    <div className="flex items-start gap-2 mb-2">
+                        <FileText className="text-blue-600 flex-shrink-0" size={20} />
+                        <h3 className="font-bold text-gray-900 text-sm md:text-base">Weekly Reports</h3>
                     </div>
                     <p className="text-xs text-gray-600">View all weekly reports and trends</p>
                 </Link>
 
                 <Link to="/founder/reports/daily" className="card bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Calendar className="text-green-600" size={24} />
-                        <h3 className="font-bold text-gray-900">Daily Report</h3>
+                    <div className="flex items-start gap-2 mb-2">
+                        <Calendar className="text-green-600 flex-shrink-0" size={20} />
+                        <h3 className="font-bold text-gray-900 text-sm md:text-base">Daily Report</h3>
                     </div>
                     <p className="text-xs text-gray-600">Today's summary and activities</p>
                 </Link>
 
                 <Link to="/founder/reports/monthly" className="card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="flex items-center gap-3 mb-2">
-                        <TrendingUp className="text-purple-600" size={24} />
-                        <h3 className="font-bold text-gray-900">Monthly Report</h3>
+                    <div className="flex items-start gap-2 mb-2">
+                        <TrendingUp className="text-purple-600 flex-shrink-0" size={20} />
+                        <h3 className="font-bold text-gray-900 text-sm md:text-base">Monthly Report</h3>
                     </div>
                     <p className="text-xs text-gray-600">Month to date performance</p>
                 </Link>
@@ -154,40 +156,40 @@ export default function FounderDashboard()
                     <p className="text-xs text-gray-600">Annual overview and analysis</p>
                 </Link>
             </div>
-            <div className="grid grid-cols-4 gap-4 mb-8">
-                <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-6">
-                    <p className="text-green-600 text-sm font-medium">Total Expenses</p>
-                    <p className="text-3xl font-bold text-green-900 mt-2">{formatCurrency(totalExpenses)}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-4 md:p-6">
+                    <p className="text-green-600 text-xs md:text-sm font-medium">Total Expenses</p>
+                    <p className="text-2xl md:text-3xl font-bold text-green-900 mt-2">{formatCurrency(totalExpenses)}</p>
                     <p className="text-xs text-green-700 mt-2">{expenses.length} records</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
-                    <p className="text-blue-600 text-sm font-medium">Production Value</p>
-                    <p className="text-3xl font-bold text-blue-900 mt-2">{formatCurrency(totalProduction)}</p>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4 md:p-6">
+                    <p className="text-blue-600 text-xs md:text-sm font-medium">Production Value</p>
+                    <p className="text-2xl md:text-3xl font-bold text-blue-900 mt-2">{formatCurrency(totalProduction)}</p>
                     <p className="text-xs text-blue-700 mt-2">{production.length} records</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-6">
-                    <p className="text-purple-600 text-sm font-medium">Total Sales</p>
-                    <p className="text-3xl font-bold text-purple-900 mt-2">{formatCurrency(totalSales)}</p>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4 md:p-6">
+                    <p className="text-purple-600 text-xs md:text-sm font-medium">Total Sales</p>
+                    <p className="text-2xl md:text-3xl font-bold text-purple-900 mt-2">{formatCurrency(totalSales)}</p>
                     <p className="text-xs text-purple-700 mt-2">{sales.length} records</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-lg p-6">
-                    <p className="text-amber-600 text-sm font-medium">Active Cattle</p>
-                    <p className="text-3xl font-bold text-amber-900 mt-2">{cattle.length}</p>
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-lg p-4 md:p-6">
+                    <p className="text-amber-600 text-xs md:text-sm font-medium">Active Cattle</p>
+                    <p className="text-2xl md:text-3xl font-bold text-amber-900 mt-2">{cattle.length}</p>
                     <p className="text-xs text-amber-700 mt-2">Total in system</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
-                    <p className="text-blue-600 text-sm font-medium">Current Palm Oil Stock</p>
-                    <p className="text-3xl font-bold text-blue-900 mt-2">{currentPalmOilStock.toLocaleString()} L</p>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4 md:p-6">
+                    <p className="text-blue-600 text-xs md:text-sm font-medium">Current Palm Oil Stock</p>
+                    <p className="text-2xl md:text-3xl font-bold text-blue-900 mt-2">{currentPalmOilStock.toLocaleString()} L</p>
                     <p className="text-xs text-blue-700 mt-2">Adjusted by production & sales</p>
                 </div>
             </div>
 
             {/* Daily Reports */}
-            <div className="grid grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-8">
                 {/* Today's Expenses */}
                 <div className="card">
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Expenses</h2>
@@ -196,8 +198,8 @@ export default function FounderDashboard()
                     ) : (
                         <div className="space-y-2">
                             {todayExpenses.map(e => (
-                                <div 
-                                    key={e.id} 
+                                <div
+                                    key={e.id}
                                     className="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-red-50 cursor-pointer transition-colors"
                                     onClick={() => { setSelectedItem(e); setSelectedItemType('expense'); }}
                                 >
@@ -224,8 +226,8 @@ export default function FounderDashboard()
                     ) : (
                         <div className="space-y-2">
                             {todayProduction.map(p => (
-                                <div 
-                                    key={p.id} 
+                                <div
+                                    key={p.id}
                                     className="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-green-50 cursor-pointer transition-colors"
                                     onClick={() => { setSelectedItem(p); setSelectedItemType('production'); }}
                                 >
@@ -252,8 +254,8 @@ export default function FounderDashboard()
                     ) : (
                         <div className="space-y-2">
                             {todaySales.map(s => (
-                                <div 
-                                    key={s.id} 
+                                <div
+                                    key={s.id}
                                     className="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-blue-50 cursor-pointer transition-colors"
                                     onClick={() => { setSelectedItem(s); setSelectedItemType('sale'); }}
                                 >
@@ -469,7 +471,7 @@ export default function FounderDashboard()
                                     <X size={24} />
                                 </button>
                             </div>
-                            
+
                             <div className="space-y-4">
                                 {selectedItemType === 'expense' && selectedItem && (
                                     <>
@@ -499,7 +501,7 @@ export default function FounderDashboard()
                                         </div>
                                     </>
                                 )}
-                                
+
                                 {selectedItemType === 'sale' && selectedItem && (
                                     <>
                                         <div className="grid grid-cols-2 gap-4">
@@ -540,7 +542,7 @@ export default function FounderDashboard()
                                         </div>
                                     </>
                                 )}
-                                
+
                                 {selectedItemType === 'production' && selectedItem && (
                                     <>
                                         <div className="grid grid-cols-2 gap-4">
@@ -570,7 +572,7 @@ export default function FounderDashboard()
                                     </>
                                 )}
                             </div>
-                            
+
                             <div className="mt-6 flex gap-3">
                                 <button
                                     onClick={() => { setSelectedItem(null); setSelectedItemType(null); }}

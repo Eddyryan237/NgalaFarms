@@ -10,28 +10,34 @@ export default function DailyReportPage()
     const [loading, setLoading] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null)
 
-    const generate = async () => {
+    const generate = async () =>
+    {
         setLoading(true)
-        try {
+        try
+        {
             const res = await apiClient.get(`/reports/daily?date=${date}`)
             setReport(res.data)
-        } catch (err) {
+        } catch (err)
+        {
             alert('Failed to generate report: ' + (err.response?.data?.message || err.message))
             setReport(null)
-        } finally { 
-            setLoading(false) 
+        } finally
+        {
+            setLoading(false)
         }
     }
 
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount || 0))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString()
 
-    const handleGenerate = () => {
+    const handleGenerate = () =>
+    {
         generate()
     }
 
     // Auto-generate report when component loads
-    useEffect(() => {
+    useEffect(() =>
+    {
         handleGenerate()
     }, [])
 
@@ -61,15 +67,15 @@ export default function DailyReportPage()
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <Calendar size={20} className="text-palm-600" />
-                        <input 
-                            type="date" 
-                            value={date} 
-                            onChange={e => setDate(e.target.value)} 
-                            className="input-field" 
+                        <input
+                            type="date"
+                            value={date}
+                            onChange={e => setDate(e.target.value)}
+                            className="input-field"
                         />
                     </div>
-                    <button 
-                        onClick={handleGenerate} 
+                    <button
+                        onClick={handleGenerate}
                         disabled={loading}
                         className="btn-primary disabled:opacity-50"
                     >
@@ -125,10 +131,10 @@ export default function DailyReportPage()
                             {report.expenses && report.expenses.length > 0 ? (
                                 <div className="space-y-2">
                                     {report.expenses.map(e => (
-                                        <div 
-                                            key={e.id} 
+                                        <div
+                                            key={e.id}
                                             className="p-3 bg-red-50 rounded border border-red-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...e, type: 'expense'})}
+                                            onClick={() => setSelectedItem({ ...e, type: 'expense' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -151,10 +157,10 @@ export default function DailyReportPage()
                             {report.sales && report.sales.length > 0 ? (
                                 <div className="space-y-2">
                                     {report.sales.map(s => (
-                                        <div 
-                                            key={s.id} 
+                                        <div
+                                            key={s.id}
                                             className="p-3 bg-green-50 rounded border border-green-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...s, type: 'sale'})}
+                                            onClick={() => setSelectedItem({ ...s, type: 'sale' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -177,10 +183,10 @@ export default function DailyReportPage()
                             {report.production && report.production.length > 0 ? (
                                 <div className="space-y-2">
                                     {report.production.map(p => (
-                                        <div 
-                                            key={p.id} 
+                                        <div
+                                            key={p.id}
                                             className="p-3 bg-blue-50 rounded border border-blue-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...p, type: 'production'})}
+                                            onClick={() => setSelectedItem({ ...p, type: 'production' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -203,10 +209,10 @@ export default function DailyReportPage()
                             {report.harvests && report.harvests.length > 0 ? (
                                 <div className="space-y-2">
                                     {report.harvests.map(h => (
-                                        <div 
-                                            key={h.id} 
+                                        <div
+                                            key={h.id}
                                             className="p-3 bg-palm-50 rounded border border-palm-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...h, type: 'harvest'})}
+                                            onClick={() => setSelectedItem({ ...h, type: 'harvest' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -229,10 +235,10 @@ export default function DailyReportPage()
                             {report.operations && report.operations.length > 0 ? (
                                 <div className="space-y-2">
                                     {report.operations.map(op => (
-                                        <div 
-                                            key={op.id} 
+                                        <div
+                                            key={op.id}
                                             className="p-3 bg-purple-50 rounded border border-purple-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...op, type: 'operation'})}
+                                            onClick={() => setSelectedItem({ ...op, type: 'operation' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -269,16 +275,17 @@ export default function DailyReportPage()
                     <div className="bg-white rounded-lg p-6 max-w-md w-full">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold text-gray-900 capitalize">{selectedItem.type} Details</h2>
-                            <button 
+                            <button
                                 onClick={() => setSelectedItem(null)}
                                 className="text-gray-600 hover:text-gray-900 text-2xl"
                             >
                                 ×
                             </button>
                         </div>
-                        
+
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-                            {Object.entries(selectedItem).map(([key, value]) => {
+                            {Object.entries(selectedItem).map(([key, value]) =>
+                            {
                                 if (key === 'type' || value === null || value === undefined) return null
                                 return (
                                     <div key={key} className="border-b pb-2">
@@ -288,8 +295,8 @@ export default function DailyReportPage()
                                 )
                             })}
                         </div>
-                        
-                        <button 
+
+                        <button
                             onClick={() => setSelectedItem(null)}
                             className="btn-secondary w-full mt-4"
                         >

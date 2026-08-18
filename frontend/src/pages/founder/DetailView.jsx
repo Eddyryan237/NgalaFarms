@@ -11,18 +11,22 @@ export default function DetailView()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
-    useEffect(() => {
-        if (!type || !id) {
+    useEffect(() =>
+    {
+        if (!type || !id)
+        {
             setError('Invalid parameters')
             setLoading(false)
             return
         }
 
-        const fetchData = async () => {
-            try {
+        const fetchData = async () =>
+        {
+            try
+            {
                 setLoading(true)
                 let endpoint = `/${type}/${id}`
-                
+
                 // Map common types to API endpoints
                 const typeMap = {
                     'expense': '/expenses',
@@ -35,18 +39,21 @@ export default function DetailView()
                     'harvest': '/palm-harvests',
                     'operation': '/daily-operations'
                 }
-                
-                if (typeMap[type.toLowerCase()]) {
+
+                if (typeMap[type.toLowerCase()])
+                {
                     endpoint = `${typeMap[type.toLowerCase()]}/${id}`
                 }
-                
+
                 const res = await apiClient.get(endpoint)
                 setItem(res.data)
                 setError(null)
-            } catch (err) {
+            } catch (err)
+            {
                 setError('Failed to load details: ' + (err.response?.data?.message || err.message))
                 setItem(null)
-            } finally {
+            } finally
+            {
                 setLoading(false)
             }
         }
@@ -55,16 +62,18 @@ export default function DetailView()
     }, [type, id])
 
     const formatDate = (date) => new Date(date).toLocaleDateString()
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount || 0))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
 
-    const renderField = (key, value) => {
+    const renderField = (key, value) =>
+    {
         if (value === null || value === undefined || value === '') return null
 
         // Skip internal fields
         if (['id', 'createdAt', 'updatedAt', 'isDeleted', '$type'].includes(key)) return null
 
         // Format specific fields
-        if (key.toLowerCase().includes('date') || key.toLowerCase().includes('time')) {
+        if (key.toLowerCase().includes('date') || key.toLowerCase().includes('time'))
+        {
             return (
                 <div key={key} className="py-3 border-b">
                     <p className="text-gray-600 font-semibold text-sm">{formatKeyName(key)}</p>
@@ -73,7 +82,8 @@ export default function DetailView()
             )
         }
 
-        if (key.toLowerCase().includes('price') || key.toLowerCase().includes('amount') || key.toLowerCase().includes('cost')) {
+        if (key.toLowerCase().includes('price') || key.toLowerCase().includes('amount') || key.toLowerCase().includes('cost'))
+        {
             return (
                 <div key={key} className="py-3 border-b">
                     <p className="text-gray-600 font-semibold text-sm">{formatKeyName(key)}</p>
@@ -82,7 +92,8 @@ export default function DetailView()
             )
         }
 
-        if (typeof value === 'object') {
+        if (typeof value === 'object')
+        {
             return (
                 <div key={key} className="py-3 border-b">
                     <p className="text-gray-600 font-semibold text-sm">{formatKeyName(key)}</p>
@@ -99,14 +110,16 @@ export default function DetailView()
         )
     }
 
-    const formatKeyName = (key) => {
+    const formatKeyName = (key) =>
+    {
         return key
             .replace(/([A-Z])/g, ' $1')
             .replace(/^./, str => str.toUpperCase())
             .trim()
     }
 
-    if (loading) {
+    if (loading)
+    {
         return (
             <div className="card">
                 <div className="flex items-center justify-center p-8">
@@ -116,7 +129,8 @@ export default function DetailView()
         )
     }
 
-    if (error) {
+    if (error)
+    {
         return (
             <div className="card bg-red-50 border border-red-200">
                 <div className="flex justify-between items-center mb-4">
@@ -130,7 +144,8 @@ export default function DetailView()
         )
     }
 
-    if (!item) {
+    if (!item)
+    {
         return (
             <div className="card bg-gray-50">
                 <div className="flex justify-between items-center mb-4">

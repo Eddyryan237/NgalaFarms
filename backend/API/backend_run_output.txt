@@ -1,0 +1,69 @@
+﻿Using launch settings from C:\Users\User\Desktop\KJ PALMS MANAGEMENT SITE\ngala-farms\backend\API\Properties\launchSettings.json...
+Building...
+C:\Users\User\Desktop\KJ PALMS MANAGEMENT SITE\ngala-farms\backend\API\NgalaFarms.API.csproj : warning NU1603: NgalaFarms.API depends on Swashbuckle.AspNetCore (>= 6.4.6) but Swashbuckle.AspNetCore 6.4.6 was not found. Swashbuckle.AspNetCore 6.5.0 was resolved instead.
+C:\Users\User\Desktop\KJ PALMS MANAGEMENT SITE\ngala-farms\backend\API\NgalaFarms.API.csproj : warning NU1603: NgalaFarms.API depends on Swashbuckle.AspNetCore (>= 6.4.6) but Swashbuckle.AspNetCore 6.4.6 was not found. Swashbuckle.AspNetCore 6.5.0 was resolved instead.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while while scanning assembly 'NgalaFarms.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattleHealthRecord'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattlePurchase'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattleSale'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattleVaccination'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattleWeightRecord'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'Salary'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Inventory' has a global query filter defined and is the required end of a relationship with the entity 'StockTransaction'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while while scanning assembly 'NgalaFarms.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattleHealthRecord'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattlePurchase'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattleSale'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattleVaccination'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Cattle' has a global query filter defined and is the required end of a relationship with the entity 'CattleWeightRecord'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'Salary'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Inventory' has a global query filter defined and is the required end of a relationship with the entity 'StockTransaction'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+dotnet : Unhandled exception. System.InvalidOperationException: An error was 
+generated for warning 
+'Microsoft.EntityFrameworkCore.Migrations.PendingModelChangesWarning': The 
+model for context 'NgalaFarmsDbContext' has pending changes. Add a new 
+migration before updating the database. See 
+https://aka.ms/efcore-docs-pending-changes. This exception can be suppressed 
+or logged by passing event ID 'RelationalEventId.PendingModelChangesWarning' 
+to the 'ConfigureWarnings' method in 'DbContext.OnConfiguring' or 
+'AddDbContext'.
+At line:1 char:98
++ ... MENT SITE\ngala-farms\backend\API"; $output = dotnet run 2>&1; $outpu ...
++                                                   ~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unhandled excep...'AddDbContext'. 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   at Microsoft.EntityFrameworkCore.Diagnostics.EventDefinition`1.Log[TLoggerCa
+tegory](IDiagnosticsLogger`1 logger, TParam arg)
+   at Microsoft.EntityFrameworkCore.Diagnostics.RelationalLoggerExtensions.Pend
+ingModelChangesWarning(IDiagnosticsLogger`1 diagnostics, Type contextType)
+   at Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.ValidateMigrat
+ions(Boolean useTransaction, String targetMigration)
+   at 
+Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.MigrateAsync(String 
+targetMigration, CancellationToken cancellationToken)
+   at 
+NgalaFarms.Infrastructure.Seed.DatabaseSeeder.SeedAsync(NgalaFarmsDbContext 
+context, UserManager`1 userManager, RoleManager`1 roleManager) in 
+C:\Users\User\Desktop\KJ PALMS MANAGEMENT 
+SITE\ngala-farms\backend\Infrastructure\Seed\DatabaseSeeder.cs:line 13
+   at Program.<Main>$(String[] args) in C:\Users\User\Desktop\KJ PALMS 
+MANAGEMENT SITE\ngala-farms\backend\API\Program.cs:line 62
+   at Program.<Main>(String[] args)

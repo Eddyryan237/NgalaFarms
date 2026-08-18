@@ -10,24 +10,29 @@ export default function MonthlyReportPage()
     const [loading, setLoading] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null)
 
-    const generate = async () => {
+    const generate = async () =>
+    {
         setLoading(true)
-        try {
+        try
+        {
             const res = await apiClient.get(`/reports/monthly?months=${months}`)
             setReport(res.data)
-        } catch (err) {
+        } catch (err)
+        {
             alert('Failed to generate report: ' + (err.response?.data?.message || err.message))
             setReport(null)
-        } finally { 
-            setLoading(false) 
+        } finally
+        {
+            setLoading(false)
         }
     }
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         generate()
     }, [])
 
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount || 0))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString()
 
     const totalExpenses = report?.expenses?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0
@@ -62,18 +67,18 @@ export default function MonthlyReportPage()
                     <div className="flex items-center gap-2">
                         <Calendar size={20} className="text-palm-600" />
                         <label className="text-gray-700 font-semibold">Last</label>
-                        <input 
-                            type="number" 
-                            min={1} 
+                        <input
+                            type="number"
+                            min={1}
                             max={12}
-                            value={months} 
-                            onChange={e => setMonths(Number(e.target.value))} 
-                            className="input-field w-24" 
+                            value={months}
+                            onChange={e => setMonths(Number(e.target.value))}
+                            className="input-field w-24"
                         />
                         <span className="text-gray-700">month(s)</span>
                     </div>
-                    <button 
-                        onClick={generate} 
+                    <button
+                        onClick={generate}
                         disabled={loading}
                         className="btn-primary disabled:opacity-50"
                     >
@@ -127,10 +132,10 @@ export default function MonthlyReportPage()
                             {report.expenses && report.expenses.length > 0 ? (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                     {report.expenses.map((e, idx) => (
-                                        <div 
-                                            key={e.id || idx} 
+                                        <div
+                                            key={e.id || idx}
                                             className="p-3 bg-red-50 rounded border border-red-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...e, type: 'expense'})}
+                                            onClick={() => setSelectedItem({ ...e, type: 'expense' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -153,10 +158,10 @@ export default function MonthlyReportPage()
                             {report.sales && report.sales.length > 0 ? (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                     {report.sales.map((s, idx) => (
-                                        <div 
-                                            key={s.id || idx} 
+                                        <div
+                                            key={s.id || idx}
                                             className="p-3 bg-green-50 rounded border border-green-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...s, type: 'sale'})}
+                                            onClick={() => setSelectedItem({ ...s, type: 'sale' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -179,10 +184,10 @@ export default function MonthlyReportPage()
                             {report.production && report.production.length > 0 ? (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                     {report.production.map((p, idx) => (
-                                        <div 
-                                            key={p.id || idx} 
+                                        <div
+                                            key={p.id || idx}
                                             className="p-3 bg-blue-50 rounded border border-blue-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...p, type: 'production'})}
+                                            onClick={() => setSelectedItem({ ...p, type: 'production' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -205,10 +210,10 @@ export default function MonthlyReportPage()
                             {report.operations && report.operations.length > 0 ? (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                     {report.operations.map((op, idx) => (
-                                        <div 
-                                            key={op.id || idx} 
+                                        <div
+                                            key={op.id || idx}
                                             className="p-3 bg-purple-50 rounded border border-purple-200 hover:shadow cursor-pointer transition"
-                                            onClick={() => setSelectedItem({...op, type: 'operation'})}
+                                            onClick={() => setSelectedItem({ ...op, type: 'operation' })}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -253,16 +258,17 @@ export default function MonthlyReportPage()
                     <div className="bg-white rounded-lg p-6 max-w-md w-full">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold text-gray-900 capitalize">{selectedItem.type} Details</h2>
-                            <button 
+                            <button
                                 onClick={() => setSelectedItem(null)}
                                 className="text-gray-600 hover:text-gray-900 text-2xl"
                             >
                                 ×
                             </button>
                         </div>
-                        
+
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-                            {Object.entries(selectedItem).map(([key, value]) => {
+                            {Object.entries(selectedItem).map(([key, value]) =>
+                            {
                                 if (key === 'type' || value === null || value === undefined) return null
                                 return (
                                     <div key={key} className="border-b pb-2">
@@ -272,8 +278,8 @@ export default function MonthlyReportPage()
                                 )
                             })}
                         </div>
-                        
-                        <button 
+
+                        <button
                             onClick={() => setSelectedItem(null)}
                             className="btn-secondary w-full mt-4"
                         >

@@ -185,18 +185,18 @@ export default function DailyOperationsPage()
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                 <div className="card">
                     <p className="text-gray-600 text-sm">Total Operations</p>
-                    <p className="text-3xl font-bold text-green-600 mt-2">{operationStats.total}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-green-600 mt-2">{operationStats.total}</p>
                 </div>
                 <div className="card">
                     <p className="text-gray-600 text-sm">Today's Operations</p>
-                    <p className="text-3xl font-bold text-blue-600 mt-2">{operationStats.today}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-blue-600 mt-2">{operationStats.today}</p>
                 </div>
                 <div className="card">
                     <p className="text-gray-600 text-sm">Operation Types</p>
-                    <p className="text-3xl font-bold text-purple-600 mt-2">{OPERATION_TYPES.length}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-purple-600 mt-2">{OPERATION_TYPES.length}</p>
                 </div>
             </div>
 
@@ -205,7 +205,7 @@ export default function DailyOperationsPage()
                 <div className="card bg-gradient-to-br from-green-50 to-blue-50 mb-8">
                     <h2 className="text-xl font-bold text-gray-900 mb-6">{editingId ? 'Edit Operation' : 'Record New Operation'}</h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Operation Type *
@@ -235,7 +235,7 @@ export default function DailyOperationsPage()
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Plantation (Optional)

@@ -125,15 +125,15 @@ export default function ProductionPage()
         : production.filter(p => p.category === filter)
 
     const formatDate = (date) => new Date(date).toLocaleDateString()
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount || 0))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
 
     const totalValue = filteredProduction.reduce((sum, p) => sum + ((p.quantity * p.cost) || 0), 0)
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Production Records</h1>
-                <button onClick={() => { setEditingId(null); setSelectedProduction(null); setShowModal(true); reset({ date: new Date().toISOString().split('T')[0], category: 'Palm Oil', item: '', quantity: '', unit: '', cost: '', description: '' }) }} className="btn-primary flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Production Records</h1>
+                <button onClick={() => { setEditingId(null); setSelectedProduction(null); setShowModal(true); reset({ date: new Date().toISOString().split('T')[0], category: 'Palm Oil', item: '', quantity: '', unit: '', cost: '', description: '' }) }} className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
                     <Plus size={18} />
                     Record Production
                 </button>
@@ -145,8 +145,8 @@ export default function ProductionPage()
                 </div>
             ) : (
                 <>
-                    <div className="mb-6 flex gap-4">
-                        <div>
+                    <div className="mb-6 flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Category</label>
                             <select
                                 value={filter}

@@ -55,7 +55,12 @@ public class SalesController : ControllerBase
         {
             InvoiceId = await _ids.GenerateSaleInvoiceIdAsync(),
             CustomerId = req.CustomerId,
-            CustomerName = req.CustomerName,
+            CustomerName = req.CustomerName ?? "",
+            CustomerPhone = req.CustomerPhone ?? string.Empty,
+            CustomerEmail = req.CustomerEmail ?? string.Empty,
+            CustomerAddress = req.CustomerAddress ?? string.Empty,
+            CustomerType = req.CustomerType ?? "Customer",
+            SellerName = req.SellerName ?? string.Empty,
             Product = req.Product,
             QuantityLitres = req.QuantityLitres,
             UnitPrice = req.UnitPrice,
@@ -107,7 +112,12 @@ public class SalesController : ControllerBase
         }
 
         s.CustomerId = req.CustomerId;
-        s.CustomerName = req.CustomerName;
+        s.CustomerName = req.CustomerName ?? "";
+        s.CustomerPhone = req.CustomerPhone ?? string.Empty;
+        s.CustomerEmail = req.CustomerEmail ?? string.Empty;
+        s.CustomerAddress = req.CustomerAddress ?? string.Empty;
+        s.CustomerType = req.CustomerType ?? "Customer";
+        s.SellerName = req.SellerName ?? string.Empty;
         s.Product = req.Product;
         s.QuantityLitres = req.QuantityLitres;
         s.UnitPrice = req.UnitPrice;
@@ -137,6 +147,11 @@ public class SalesController : ControllerBase
         InvoiceId = s.InvoiceId,
         CustomerId = s.CustomerId,
         CustomerName = s.CustomerName,
+        CustomerPhone = s.CustomerPhone,
+        CustomerEmail = s.CustomerEmail,
+        CustomerAddress = s.CustomerAddress,
+        CustomerType = s.CustomerType,
+        SellerName = s.SellerName,
         Product = s.Product,
         QuantityLitres = s.QuantityLitres,
         UnitPrice = s.UnitPrice,

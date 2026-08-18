@@ -10,22 +10,28 @@ export default function WeeklyReportDetail()
     const [report, setReport] = useState(null)
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (!id) return
-        const fetchReport = async () => {
-            try {
+        const fetchReport = async () =>
+        {
+            try
+            {
                 const r = await apiClient.get(`/reports/${id}`)
                 setReport(r.data)
-            } catch (err) {
+            } catch (err)
+            {
                 setReport(null)
-            } finally {
+            } finally
+            {
                 setLoading(false)
             }
         }
         fetchReport()
     }, [id])
 
-    if (loading) {
+    if (loading)
+    {
         return (
             <div className="card">
                 <div className="flex items-center justify-center p-8">
@@ -42,7 +48,7 @@ export default function WeeklyReportDetail()
         </div>
     )
 
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount || 0))
+    const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
     const formatDate = (date) => new Date(date).toLocaleDateString()
     const weekStart = new Date(report.weekStart).toISOString().split('T')[0]
 
