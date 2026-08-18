@@ -1,0 +1,19 @@
+{
+  "name": "Ngala Farms",
+  "short_name": "Ngala Farms",
+  "description": "Ngala Farms management system for palm oil, livestock, and operations tracking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#14532d",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/ngala-farms-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
