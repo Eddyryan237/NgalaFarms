@@ -16,6 +16,7 @@ export const setAuth = (accessToken, refreshToken, user) =>
     Cookies.set('accessToken', accessToken, { expires: 1 })
     Cookies.set('refreshToken', refreshToken, { expires: 7 })
     localStorage.setItem('user', JSON.stringify(user))
+    window.dispatchEvent(new Event('auth-change'))
 }
 
 export const clearAuth = () =>
@@ -23,6 +24,7 @@ export const clearAuth = () =>
     Cookies.remove('accessToken')
     Cookies.remove('refreshToken')
     localStorage.removeItem('user')
+    window.dispatchEvent(new Event('auth-change'))
 }
 
 export const isFounder = () =>

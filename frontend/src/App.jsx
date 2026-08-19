@@ -47,6 +47,8 @@ function AppContent()
 
     useEffect(() =>
     {
+        const refreshAuth = () => setAuth(getAuth())
+
         try
         {
             const authData = getAuth()
@@ -59,6 +61,9 @@ function AppContent()
         {
             setLoading(false)
         }
+
+        window.addEventListener('auth-change', refreshAuth)
+        return () => window.removeEventListener('auth-change', refreshAuth)
     }, [])
 
     if (loading)
