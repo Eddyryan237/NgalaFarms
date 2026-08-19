@@ -168,7 +168,8 @@ export default function DailyOperationsPage()
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Daily Operations</h1>
                 <button
-                    onClick={() => {
+                    onClick={() =>
+                    {
                         setSelectedOperation(null)
                         setEditingId(null)
                         setShowForm(!showForm)

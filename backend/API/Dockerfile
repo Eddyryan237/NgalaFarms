@@ -18,4 +18,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=publish /app/publish .
 EXPOSE 5000
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+ENV DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
 ENTRYPOINT ["sh", "-c", "dotnet NgalaFarms.API.dll --urls http://+:${PORT:-5000}"]
