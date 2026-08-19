@@ -119,8 +119,8 @@ function AppContent()
                     </Route>
                 )}
 
-                <Route path="/" element={<Navigate to={auth.isAuthenticated ? (isFounder ? '/founder/dashboard' : '/manager/dashboard') : '/login'} replace />} />
-                <Route path="*" element={<Navigate to={auth.isAuthenticated ? (isFounder ? '/founder/dashboard' : '/manager/dashboard') : '/login'} replace />} />
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         </Router>
     )
