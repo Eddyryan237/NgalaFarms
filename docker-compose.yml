@@ -3,8 +3,8 @@ version: '3.8'
 services:
   ngala-api:
     build:
-      context: ./backend
-      dockerfile: API/Dockerfile
+      context: .
+      dockerfile: backend/API/Dockerfile
     ports:
       - "5000:5000"
     environment:

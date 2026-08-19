@@ -18,5 +18,4 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=publish /app/publish .
 EXPOSE 5000
-ENV ASPNETCORE_URLS=http://+:5000
-ENTRYPOINT ["dotnet", "NgalaFarms.API.dll"]
+ENTRYPOINT ["sh", "-c", "dotnet NgalaFarms.API.dll --urls http://+:${PORT:-5000}"]

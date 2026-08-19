@@ -38,12 +38,19 @@ builder.Services.AddApplication();
 
 builder.Services.AddCors(options =>
 {
+    var renderFrontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+    var allowedOrigins = new[]
+    {
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:5174",
+        renderFrontendUrl
+    }
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Select(origin => origin!);
+
     options.AddPolicy("NgalaFarmsPolicy", policy =>
-        policy.WithOrigins(
-            "http://localhost:5173",
-            "http://localhost:3000",
-            "http://localhost:5174"
-        )
+        policy.WithOrigins(allowedOrigins.ToArray())
         .AllowAnyMethod()
         .AllowAnyHeader()
         .AllowCredentials());

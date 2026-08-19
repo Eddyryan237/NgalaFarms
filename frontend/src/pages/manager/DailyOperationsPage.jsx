@@ -45,7 +45,7 @@ export default function DailyOperationsPage()
     // Fetch plantations for selector
     const { data: plantations = [] } = useQuery({
         queryKey: ['plantations'],
-        queryFn: () => apiClient.get('/api/plantations').then(r => r.data)
+        queryFn: () => apiClient.get('/plantations').then(r => r.data)
     })
 
     const invalidateDailyOperations = () =>

@@ -1,8 +1,8 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
 
-// Use relative path so Vite proxy works in dev
-const API_BASE = '/api'
+// Use the Vite proxy locally and the Render API URL in production.
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 const apiClient = axios.create({
   baseURL: API_BASE,
