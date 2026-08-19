@@ -80,5 +80,11 @@ app.UseCors("NgalaFarmsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGet("/", () => Results.Ok(new
+{
+    name = "Ngala Farms API",
+    status = "running"
+}));
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
 app.Run();
