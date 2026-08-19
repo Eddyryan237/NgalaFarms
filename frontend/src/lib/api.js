@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
         {
           Cookies.remove('accessToken')
           Cookies.remove('refreshToken')
-          window.location.href = '/login'
+          window.location.hash = '#/login'
         }
       }
     }

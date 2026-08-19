@@ -202,7 +202,7 @@ export default function ExpensesPage()
                                             <td className="py-3 px-4 font-medium">{formatCurrency(e.amount)}</td>
                                             <td className="py-3 px-4 text-center space-x-2">
                                                 <button
-                                                    onClick={() => window.location.href = `/founder/details/expenses/${e.id}`}
+                                                    onClick={() => window.location.hash = `#/founder/details/expenses/${e.id}`}
                                                     className="text-blue-600 hover:text-blue-800 transition"
                                                     title="Open in founder view"
                                                 >

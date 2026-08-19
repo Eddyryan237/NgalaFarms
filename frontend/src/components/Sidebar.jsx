@@ -22,7 +22,7 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
     const handleLogout = () =>
     {
         clearAuth()
-        window.location.href = '/login'
+        window.location.hash = '#/login'
     }
 
     return (

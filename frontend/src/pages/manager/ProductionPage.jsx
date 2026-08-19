@@ -209,7 +209,7 @@ export default function ProductionPage()
                                             <td className="py-3 px-4 text-xs text-gray-600">{p.description || '-'}</td>
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center gap-3">
-                                                    <button type="button" onClick={() => window.location.href = `/founder/details/production/${p.id}`} className="text-blue-600 hover:text-blue-800" title="View details">
+                                                    <button type="button" onClick={() => window.location.hash = `#/founder/details/production/${p.id}`} className="text-blue-600 hover:text-blue-800" title="View details">
                                                         <Eye size={16} />
                                                     </button>
                                                     <button type="button" onClick={() => openEdit(p)} className="text-green-600 hover:text-green-800" title="Edit record">

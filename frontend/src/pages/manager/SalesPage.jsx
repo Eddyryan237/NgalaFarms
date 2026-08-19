@@ -469,7 +469,7 @@ export default function SalesPage()
                                                 <button type="button" onClick={() => { setSelectedSale(s); setShowDetails(true) }} className="text-blue-600 hover:text-blue-800" title="View details">
                                                     <Eye size={18} />
                                                 </button>
-                                                <button type="button" onClick={() => window.location.href = `/founder/details/sales/${s.id}`} className="text-blue-600 hover:text-blue-800" title="Open in founder view">
+                                                <button type="button" onClick={() => window.location.hash = `#/founder/details/sales/${s.id}`} className="text-blue-600 hover:text-blue-800" title="Open in founder view">
                                                     <Eye size={18} />
                                                 </button>
                                                 <button type="button" onClick={() => handleEdit(s)} className="text-green-600 hover:text-green-800" title="Edit sale">
