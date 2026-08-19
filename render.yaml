@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: ngalafarms-api
+    runtime: dotnet
+    buildCommand: dotnet publish -c Release -o ./publish/API backend/API/NgalaFarms.API.csproj
+    startCommand: cd ./publish/API && dotnet NgalaFarms.API.dll --urls http://0.0.0.0:$PORT
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: DOTNET_USE_POLLING_FILE_WATCHER
+        value: "true"
+      - key: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE
+        value: "false"
+
+  - type: static_site
+    name: ngalafarms-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

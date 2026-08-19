@@ -43,11 +43,11 @@ export default function ManagerDashboard()
     const dashboard = data || {}
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Operations Dashboard</h1>
+        <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">Operations Dashboard</h1>
 
             {/* Today's Overview */}
-            <div className="grid grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
                 <div className="card">
                     <p className="text-gray-600 text-sm">Today's Palm Harvest</p>
                     <p className="text-3xl font-bold text-palm-600 mt-2">{dashboard.todaysPalmHarvestKg?.toLocaleString()} KG</p>
@@ -79,7 +79,7 @@ export default function ManagerDashboard()
             </div>
 
             {/* Cattle & Quick Stats */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 <div className="card">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Cattle Status</h3>
                     <div className="space-y-3">
@@ -130,7 +130,7 @@ export default function ManagerDashboard()
                 </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-6 mt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mt-6 md:mt-8">
                 <div className="card">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-bold text-gray-900">Recent Daily Operations</h3>
