@@ -15,4 +15,5 @@ public interface IIdGeneratorService
     Task<string> GeneratePurchaseIdAsync();
     Task<string> GenerateCattleSaleIdAsync();
     Task<string> GenerateWeeklyReportIdAsync();
+    Task<string> GeneratePayrollReceiptNumberAsync();
 }

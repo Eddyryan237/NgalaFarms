@@ -14,15 +14,16 @@ export function useFormHandler(queryKey)
         setError(null)
         try
         {
+            let response
             if (method === 'POST')
             {
-                await apiClient.post(endpoint, data)
+                response = await apiClient.post(endpoint, data)
             } else if (method === 'PUT')
             {
-                await apiClient.put(endpoint, data)
+                response = await apiClient.put(endpoint, data)
             }
             queryClient.invalidateQueries({ queryKey })
-            return true
+            return response?.data || true
         } catch (err)
         {
             setError(err.response?.data?.message || err.message)

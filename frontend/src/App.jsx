@@ -22,6 +22,8 @@ import CattleListPage from './pages/manager/CattleListPage'
 import PalmHarvestPage from './pages/manager/PalmHarvestPage'
 import SalesPage from './pages/manager/SalesPage'
 import ExpensesPage from './pages/manager/ExpensesPage'
+import PayrollPage from './pages/manager/PayrollPage'
+import EmployeesPage from './pages/manager/EmployeesPage'
 import ProductionPage from './pages/manager/ProductionPage'
 
 const queryClient = new QueryClient()
@@ -121,6 +123,8 @@ function AppContent()
                         <Route path="/manager/production" element={<ProductionPage />} />
                         <Route path="/manager/sales" element={<SalesPage />} />
                         <Route path="/manager/expenses" element={<ExpensesPage />} />
+                        <Route path="/manager/payroll" element={<PayrollPage />} />
+                        <Route path="/manager/employees" element={<EmployeesPage />} />
                     </Route>
                 )}
 

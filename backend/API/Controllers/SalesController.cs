@@ -41,6 +41,11 @@ public class SalesController : ControllerBase
     [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Create([FromBody] CreateSaleRequest req)
     {
+        if (req.QuantityLitres <= 0)
+        {
+            return BadRequest(new { message = "Sale quantity must be greater than zero." });
+        }
+
         if (req.CustomerId.HasValue)
         {
             var customerExists = await _db.Customers.AnyAsync(c => c.Id == req.CustomerId.Value && !c.IsDeleted);
@@ -48,6 +53,16 @@ public class SalesController : ControllerBase
             {
                 return BadRequest(new { message = "Selected customer does not exist." });
             }
+        }
+
+        var inv = await _db.Inventories.FirstOrDefaultAsync(i => i.ProductName == "Palm Oil");
+        var availableStock = inv?.CurrentQuantity ?? 0;
+        if (inv == null || req.QuantityLitres > availableStock)
+        {
+            return BadRequest(new
+            {
+                message = $"Insufficient Palm Oil stock. Available: {availableStock:0.##} L; requested: {req.QuantityLitres:0.##} L."
+            });
         }
 
         var totalPrice = req.QuantityLitres * req.UnitPrice;
@@ -72,21 +87,17 @@ public class SalesController : ControllerBase
         };
         _db.Sales.Add(s);
 
-        var inv = await _db.Inventories.FirstOrDefaultAsync(i => i.ProductName == "Palm Oil");
-        if (inv != null)
+        inv.CurrentQuantity -= req.QuantityLitres;
+        _db.StockTransactions.Add(new StockTransaction
         {
-            inv.CurrentQuantity = Math.Max(0, inv.CurrentQuantity - req.QuantityLitres);
-            _db.StockTransactions.Add(new StockTransaction
-            {
-                InventoryId = inv.Id,
-                TransactionType = StockTransactionType.Sold,
-                Quantity = req.QuantityLitres,
-                BalanceAfter = inv.CurrentQuantity,
-                ReferenceId = s.InvoiceId,
-                Description = $"Sale {s.InvoiceId}",
-                TransactionDate = req.SaleDate
-            });
-        }
+            InventoryId = inv.Id,
+            TransactionType = StockTransactionType.Sold,
+            Quantity = req.QuantityLitres,
+            BalanceAfter = inv.CurrentQuantity,
+            ReferenceId = s.InvoiceId,
+            Description = $"Sale {s.InvoiceId}",
+            TransactionDate = req.SaleDate
+        });
 
         await _db.SaveChangesAsync();
         var userId = User.FindFirst("userId")?.Value ?? "";
@@ -111,6 +122,16 @@ public class SalesController : ControllerBase
             }
         }
 
+        var inv = await _db.Inventories.FirstOrDefaultAsync(i => i.ProductName == "Palm Oil");
+        var availableStock = (inv?.CurrentQuantity ?? 0) + s.QuantityLitres;
+        if (inv == null || req.QuantityLitres <= 0 || req.QuantityLitres > availableStock)
+        {
+            return BadRequest(new
+            {
+                message = $"Insufficient Palm Oil stock. Available: {availableStock:0.##} L; requested: {req.QuantityLitres:0.##} L."
+            });
+        }
+
         s.CustomerId = req.CustomerId;
         s.CustomerName = req.CustomerName ?? "";
         s.CustomerPhone = req.CustomerPhone ?? string.Empty;
@@ -127,12 +148,14 @@ public class SalesController : ControllerBase
         s.SaleDate = req.SaleDate;
         s.Notes = req.Notes;
 
+        inv.CurrentQuantity = availableStock - req.QuantityLitres;
+
         await _db.SaveChangesAsync();
         return Ok(Map(s));
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Founder")]
+    [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Delete(int id)
     {
         var s = await _db.Sales.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);

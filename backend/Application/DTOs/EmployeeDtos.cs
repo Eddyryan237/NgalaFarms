@@ -40,9 +40,13 @@ public class CreateEmployeeRequest
 public class SalaryDto
 {
     public int Id { get; set; }
+    public string ReceiptNumber { get; set; } = string.Empty;
     public int EmployeeId { get; set; }
+    public string EmployeeCode { get; set; } = string.Empty;
     public string EmployeeName { get; set; } = string.Empty;
+    public string? EmployeePhone { get; set; }
     public string EmployeePosition { get; set; } = string.Empty;
+    public string EmployeeDepartment { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string Period { get; set; } = string.Empty;
     public DateTime PeriodStart { get; set; }
@@ -58,10 +62,7 @@ public class CreateSalaryRequest
     public int EmployeeId { get; set; }
     public decimal Amount { get; set; }
     public string Period { get; set; } = string.Empty;
-    public DateTime PeriodStart { get; set; }
-    public DateTime PeriodEnd { get; set; }
     public DateTime? PaymentDate { get; set; }
-    public SalaryStatus Status { get; set; } = SalaryStatus.Pending;
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
     public string? Notes { get; set; }
 }

@@ -4,6 +4,7 @@ public class PalmHarvest : BaseEntity
 {
     public string HarvestId { get; set; } = string.Empty;
     public int PlantationId { get; set; }
+    public string PlantationIds { get; set; } = string.Empty;
     public Plantation Plantation { get; set; } = null!;
     public int? PalmBlockId { get; set; }
     public PalmBlock? PalmBlock { get; set; }

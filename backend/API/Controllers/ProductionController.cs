@@ -82,7 +82,7 @@ public class ProductionController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Founder")]
+    [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Delete(int id)
     {
         var production = await _db.Productions.FindAsync(id);

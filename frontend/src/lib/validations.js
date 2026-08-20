@@ -16,7 +16,6 @@ export const palmHarvestSchema = z.object({
     numberOfBunches: z.coerce.number().min(1, 'Fruit bunches must be at least 1'),
     totalWeightKg: z.coerce.number().min(0.1, 'Estimated yield must be greater than 0'),
     harvestTeam: z.string().min(1, 'Harvest team is required'),
-    laborCost: z.coerce.number().min(0, 'Labor cost is required'),
     notes: z.string().optional()
 })
 
@@ -43,6 +42,29 @@ export const expenseSchema = z.object({
     date: z.string().min(1, 'Expense date is required'),
     description: z.string().min(1, 'Description is required'),
     paymentMethod: z.number().min(0, 'Payment method is required')
+})
+
+export const payrollSchema = z.object({
+    employeeId: z.coerce.number().min(1, 'Employee is required'),
+    amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
+    period: z.string().min(1, 'Payroll month is required'),
+    paymentDate: z.string().min(1, 'Payment date is required'),
+    paymentMethod: z.enum(['Cash', 'BankTransfer', 'MobileMoney', 'Cheque', 'Other'], 'Payment method is required'),
+    notes: z.string().optional()
+})
+
+export const employeeSchema = z.object({
+    fullName: z.string().min(1, 'Full name is required'),
+    phone: z.string().optional(),
+    email: z.string().email('Enter a valid email').optional().or(z.literal('')),
+    address: z.string().optional(),
+    position: z.string().min(1, 'Position is required'),
+    department: z.string().min(1, 'Department is required'),
+    monthlySalary: z.coerce.number().min(0, 'Salary cannot be negative'),
+    employmentDate: z.string().min(1, 'Employment date is required'),
+    emergencyContact: z.string().optional(),
+    emergencyPhone: z.string().optional(),
+    notes: z.string().optional()
 })
 
 export const processingSchema = z.object({

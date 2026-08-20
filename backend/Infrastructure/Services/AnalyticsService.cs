@@ -82,7 +82,8 @@ public class AnalyticsService : IAnalyticsService
             var me = ms.AddMonths(1);
             var r = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= ms && s.SaleDate < me).SumAsync(s => s.TotalPrice)
                   + await _db.CattleSales.Where(s => s.SaleDate >= ms && s.SaleDate < me).SumAsync(s => s.SalePrice);
-            var e2 = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= ms && e.Date < me).SumAsync(e => e.Amount);
+                 var e2 = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= ms && e.Date < me).SumAsync(e => e.Amount)
+                     + await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid && s.PeriodStart >= ms && s.PeriodStart < me).SumAsync(s => s.Amount);
             months.Add(new MonthlyRevenueDto { Month = md.ToString("MMM yyyy"), Revenue = r, Expenses = e2, Profit = r - e2 });
         }
 

@@ -71,7 +71,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Founder")]
+    [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Delete(int id)
     {
         var e = await _db.Employees.FindAsync(id);
@@ -96,7 +96,10 @@ public class EmployeesController : ControllerBase
 public class PayrollController : ControllerBase
 {
     private readonly NgalaFarmsDbContext _db;
-    public PayrollController(NgalaFarmsDbContext db) => _db = db;
+    private readonly IIdGeneratorService _ids;
+    private readonly IAuditService _audit;
+    public PayrollController(NgalaFarmsDbContext db, IIdGeneratorService ids, IAuditService audit)
+    { _db = db; _ids = ids; _audit = audit; }
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? period)
@@ -111,12 +114,25 @@ public class PayrollController : ControllerBase
     [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Create([FromBody] CreateSalaryRequest req)
     {
-        var emp = await _db.Employees.FindAsync(req.EmployeeId);
-        if (emp == null) return NotFound(new { message = "Employee not found" });
-        var s = new Salary { EmployeeId = req.EmployeeId, Amount = req.Amount, Period = req.Period, PeriodStart = req.PeriodStart, PeriodEnd = req.PeriodEnd, PaymentDate = req.PaymentDate, Status = req.Status, PaymentMethod = req.PaymentMethod, Notes = req.Notes };
+        var emp = await _db.Employees.FirstOrDefaultAsync(e => e.Id == req.EmployeeId);
+        if (emp == null) return NotFound(new { message = "Selected employee not found" });
+        if (req.Amount <= 0) return BadRequest(new { message = "Salary amount must be greater than zero" });
+        if (!DateTime.TryParseExact(req.Period, "yyyy-MM", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var payrollMonth))
+            return BadRequest(new { message = "Payroll period must be a valid month" });
+        var periodStart = new DateTime(payrollMonth.Year, payrollMonth.Month, 1);
+        var periodEnd = periodStart.AddMonths(1).AddDays(-1);
+        var s = new Salary
+        {
+            ReceiptNumber = await _ids.GeneratePayrollReceiptNumberAsync(), EmployeeId = emp.Id,
+            Amount = req.Amount, Period = req.Period, PeriodStart = periodStart, PeriodEnd = periodEnd,
+            PaymentDate = req.PaymentDate ?? DateTime.UtcNow, Status = SalaryStatus.Paid,
+            PaymentMethod = req.PaymentMethod, Notes = req.Notes
+        };
         _db.Salaries.Add(s);
         await _db.SaveChangesAsync();
-        return Ok(Map(s));
+        await _audit.LogAsync(User.FindFirst("userId")?.Value ?? "", User.FindFirst("fullName")?.Value ?? "", $"Recorded payroll {s.ReceiptNumber} for {emp.FullName}", "Payroll", s.ReceiptNumber);
+        await _db.Entry(s).Reference(x => x.Employee).LoadAsync();
+        return CreatedAtAction(nameof(GetAll), new { period = s.Period }, Map(s));
     }
 
     [HttpPatch("{id:int}/mark-paid")]
@@ -132,8 +148,10 @@ public class PayrollController : ControllerBase
 
     private static SalaryDto Map(Salary s) => new()
     {
-        Id = s.Id, EmployeeId = s.EmployeeId, EmployeeName = s.Employee?.FullName ?? "",
-        EmployeePosition = s.Employee?.Position ?? "", Amount = s.Amount, Period = s.Period,
+        Id = s.Id, ReceiptNumber = s.ReceiptNumber, EmployeeId = s.EmployeeId,
+        EmployeeCode = s.Employee?.EmployeeId ?? "", EmployeeName = s.Employee?.FullName ?? "",
+        EmployeePhone = s.Employee?.Phone, EmployeePosition = s.Employee?.Position ?? "",
+        EmployeeDepartment = s.Employee?.Department ?? "", Amount = s.Amount, Period = s.Period,
         PeriodStart = s.PeriodStart, PeriodEnd = s.PeriodEnd, PaymentDate = s.PaymentDate,
         Status = s.Status, PaymentMethod = s.PaymentMethod, Notes = s.Notes
     };

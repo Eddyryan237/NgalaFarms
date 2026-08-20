@@ -86,6 +86,7 @@ public class DashboardService : IDashboardService
         var healthAlerts = await _db.CattleHealthRecords.CountAsync(h => !h.IsDeleted && h.FollowUpDate >= now);
         var todaySales = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= today && s.SaleDate < tomorrow).SumAsync(s => s.TotalPrice);
         var todayExpenses = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= today && e.Date < tomorrow).SumAsync(e => e.Amount);
+        var todaySalaries = await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid && s.PaymentDate >= today && s.PaymentDate < tomorrow).SumAsync(s => s.Amount);
         var activeEmp = await _db.Employees.CountAsync(e => !e.IsDeleted && e.Status == EmployeeStatus.Active);
 
         return new ManagerDashboardDto
@@ -96,7 +97,7 @@ public class DashboardService : IDashboardService
             TotalActiveCattle = activeCattle,
             CattleHealthAlerts = healthAlerts,
             TodaysSalesRevenue = todaySales,
-            TodaysExpenses = todayExpenses,
+            TodaysExpenses = todayExpenses + todaySalaries,
             ActiveEmployees = activeEmp
         };
     }

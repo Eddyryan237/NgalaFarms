@@ -36,12 +36,12 @@ export default function PalmHarvestPage()
             numberOfBunches: '',
             totalWeightKg: '',
             harvestTeam: '',
-            laborCost: '',
             notes: ''
         }
     })
 
-    const selectedPlantationId = watch('plantationId')
+    const selectedPlantationIds = (watch('plantationId') || '').split(',').map(value => value.trim()).filter(Boolean)
+    const selectedPlantationId = selectedPlantationIds.length === 1 ? selectedPlantationIds[0] : ''
     const { data: blocks = [] } = useQuery({
         queryKey: ['plantation-blocks', selectedPlantationId],
         enabled: !!selectedPlantationId,
@@ -89,7 +89,6 @@ export default function PalmHarvestPage()
             numberOfBunches: '',
             totalWeightKg: '',
             harvestTeam: '',
-            laborCost: '',
             notes: ''
         })
         setEditingId(null)
@@ -98,13 +97,13 @@ export default function PalmHarvestPage()
 
     const onSubmit = async (data) => {
         const payload = {
-            plantationId: Number(data.plantationId),
+            plantationId: Number(selectedPlantationIds[0]),
+            plantationIds: selectedPlantationIds.map(Number),
             palmBlockId: data.palmBlockId ? Number(data.palmBlockId) : null,
             harvestDate: data.harvestDate,
             numberOfBunches: Number(data.numberOfBunches),
             totalWeightKg: Number(data.totalWeightKg),
             harvestTeam: data.harvestTeam,
-            laborCost: Number(data.laborCost),
             notes: data.notes || ''
         }
 
@@ -114,13 +113,12 @@ export default function PalmHarvestPage()
     const openEdit = (harvest) => {
         setEditingId(harvest.id)
         setSelectedHarvest(harvest)
-        setValue('plantationId', String(harvest.plantationId || ''))
+        setValue('plantationId', (harvest.plantationIds?.length ? harvest.plantationIds : [harvest.plantationId]).join(','))
         setValue('palmBlockId', harvest.palmBlockId ? String(harvest.palmBlockId) : '')
         setValue('harvestDate', harvest.harvestDate ? harvest.harvestDate.split('T')[0] : new Date().toISOString().split('T')[0])
         setValue('numberOfBunches', harvest.numberOfBunches ?? '')
         setValue('totalWeightKg', harvest.totalWeightKg ?? '')
         setValue('harvestTeam', harvest.harvestTeam || '')
-        setValue('laborCost', harvest.laborCost ?? '')
         setValue('notes', harvest.notes || '')
         setShowModal(true)
     }
@@ -131,7 +129,7 @@ export default function PalmHarvestPage()
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Palm Harvesting</h1>
-                <button onClick={() => { setEditingId(null); setSelectedHarvest(null); setShowModal(true); reset({ plantationId: '', palmBlockId: '', harvestDate: new Date().toISOString().split('T')[0], numberOfBunches: '', totalWeightKg: '', harvestTeam: '', laborCost: '', notes: '' }) }} className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
+                <button onClick={() => { setEditingId(null); setSelectedHarvest(null); setShowModal(true); reset({ plantationId: '', palmBlockId: '', harvestDate: new Date().toISOString().split('T')[0], numberOfBunches: '', totalWeightKg: '', harvestTeam: '', notes: '' }) }} className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
                     <Plus size={18} />
                     Record Harvest
                 </button>
@@ -151,7 +149,7 @@ export default function PalmHarvestPage()
                         <thead className="border-b border-gray-200">
                             <tr className="text-gray-600 font-semibold">
                                 <th className="text-left py-3 px-4">Harvest ID</th>
-                                <th className="text-left py-3 px-4">Plantation</th>
+                                <th className="text-left py-3 px-4">Field</th>
                                 <th className="text-left py-3 px-4">Date</th>
                                 <th className="text-left py-3 px-4">Bunches</th>
                                 <th className="text-left py-3 px-4">Yield (KG)</th>
@@ -197,13 +195,27 @@ export default function PalmHarvestPage()
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Plantation</label>
-                            <select {...register('plantationId')} className="input-field">
-                                <option value="">Select plantation</option>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Fields</label>
+                            <div className="grid grid-cols-1 gap-2 rounded-lg border border-gray-300 bg-white p-3 max-h-36 overflow-y-auto">
                                 {plantations.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                    <label key={p.id} className="flex items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedPlantationIds.includes(String(p.id))}
+                                            onChange={(e) => {
+                                                const next = e.target.checked
+                                                    ? [...selectedPlantationIds, String(p.id)]
+                                                    : selectedPlantationIds.filter(id => id !== String(p.id))
+                                                setValue('plantationId', next.join(','), { shouldValidate: true })
+                                                if (next.length !== 1) setValue('palmBlockId', '')
+                                            }}
+                                            className="h-4 w-4 accent-green-600"
+                                        />
+                                        {p.name}
+                                    </label>
                                 ))}
-                            </select>
+                            </div>
+                            {selectedPlantationIds.length > 0 && <p className="text-xs text-gray-500 mt-1">{selectedPlantationIds.length} field(s) selected</p>}
                             {errors.plantationId && <p className="text-red-600 text-xs mt-1">{errors.plantationId.message}</p>}
                         </div>
 
@@ -215,6 +227,7 @@ export default function PalmHarvestPage()
                                     <option key={block.id} value={block.id}>{block.name}</option>
                                 ))}
                             </select>
+                            {selectedPlantationIds.length > 1 && <p className="text-xs text-gray-500 mt-1">Palm block is available when one field is selected.</p>}
                             {errors.palmBlockId && <p className="text-red-600 text-xs mt-1">{errors.palmBlockId.message}</p>}
                         </div>
 
@@ -242,11 +255,6 @@ export default function PalmHarvestPage()
                             {errors.totalWeightKg && <p className="text-red-600 text-xs mt-1">{errors.totalWeightKg.message}</p>}
                         </div>
 
-                        <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Labor Cost</label>
-                            <input type="number" step="0.01" {...register('laborCost', { valueAsNumber: true })} className="input-field" placeholder="0.00" />
-                            {errors.laborCost && <p className="text-red-600 text-xs mt-1">{errors.laborCost.message}</p>}
-                        </div>
                     </div>
 
                     <div>
@@ -275,7 +283,7 @@ export default function PalmHarvestPage()
                                 <p className="font-semibold text-gray-900">{selectedHarvest.harvestId}</p>
                             </div>
                             <div>
-                                <p className="text-gray-500">Plantation</p>
+                                <p className="text-gray-500">Field</p>
                                 <p className="font-semibold text-gray-900">{selectedHarvest.plantationName || 'N/A'}</p>
                             </div>
                             <div>
@@ -297,10 +305,6 @@ export default function PalmHarvestPage()
                             <div>
                                 <p className="text-gray-500">Team</p>
                                 <p className="font-semibold text-gray-900">{selectedHarvest.harvestTeam || 'Field team'}</p>
-                            </div>
-                            <div>
-                                <p className="text-gray-500">Labor Cost</p>
-                                <p className="font-semibold text-gray-900">{selectedHarvest.laborCost || 0}</p>
                             </div>
                         </div>
 
