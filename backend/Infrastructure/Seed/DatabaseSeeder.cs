@@ -12,6 +12,7 @@ public static class DatabaseSeeder
     {
         await context.Database.MigrateAsync();
         await EnsurePalmHarvestPlantationsColumnAsync(context);
+        await EnsureSeedDataEnabledColumnAsync(context);
 
         // Roles (idempotent and defensive)
         foreach (var role in new[] { "Founder", "Manager" })
@@ -88,6 +89,10 @@ public static class DatabaseSeeder
                     await userManager.AddToRoleAsync(created, "Manager");
             }
         }
+
+        // A founder can permanently clear demo/business data. Do not recreate it on restart.
+        if (await context.CompanySettings.AnyAsync(s => !s.SeedDataEnabled))
+            return;
 
         // Customer records are managed by the manager and added when a sale is recorded.
         // No default distributor/retailer entries are seeded, so every customer can be tracked with its own credentials.
@@ -388,6 +393,35 @@ public static class DatabaseSeeder
         {
             await using var addColumnCommand = connection.CreateCommand();
             addColumnCommand.CommandText = "ALTER TABLE PalmHarvests ADD COLUMN PlantationIds TEXT NOT NULL DEFAULT '';";
+            await addColumnCommand.ExecuteNonQueryAsync();
+        }
+    }
+
+    private static async Task EnsureSeedDataEnabledColumnAsync(NgalaFarmsDbContext context)
+    {
+        var connection = context.Database.GetDbConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+            await connection.OpenAsync();
+
+        await using var checkCommand = connection.CreateCommand();
+        checkCommand.CommandText = "PRAGMA table_info('CompanySettings');";
+        var hasColumn = false;
+        await using (var reader = await checkCommand.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                if (string.Equals(reader.GetString(1), "SeedDataEnabled", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasColumn = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasColumn)
+        {
+            await using var addColumnCommand = connection.CreateCommand();
+            addColumnCommand.CommandText = "ALTER TABLE CompanySettings ADD COLUMN SeedDataEnabled INTEGER NOT NULL DEFAULT 1;";
             await addColumnCommand.ExecuteNonQueryAsync();
         }
     }
