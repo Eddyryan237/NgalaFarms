@@ -11,6 +11,7 @@ public static class DatabaseSeeder
     public static async Task SeedAsync(NgalaFarmsDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
     {
         await context.Database.MigrateAsync();
+        await EnsurePalmHarvestPlantationsColumnAsync(context);
 
         // Roles (idempotent and defensive)
         foreach (var role in new[] { "Founder", "Manager" })
@@ -359,6 +360,35 @@ public static class DatabaseSeeder
                 });
             }
             await context.SaveChangesAsync();
+        }
+    }
+
+    private static async Task EnsurePalmHarvestPlantationsColumnAsync(NgalaFarmsDbContext context)
+    {
+        var connection = context.Database.GetDbConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+            await connection.OpenAsync();
+
+        await using var checkCommand = connection.CreateCommand();
+        checkCommand.CommandText = "PRAGMA table_info('PalmHarvests');";
+        var hasColumn = false;
+        await using (var reader = await checkCommand.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                if (string.Equals(reader.GetString(1), "PlantationIds", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasColumn = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasColumn)
+        {
+            await using var addColumnCommand = connection.CreateCommand();
+            addColumnCommand.CommandText = "ALTER TABLE PalmHarvests ADD COLUMN PlantationIds TEXT NOT NULL DEFAULT '';";
+            await addColumnCommand.ExecuteNonQueryAsync();
         }
     }
 }

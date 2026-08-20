@@ -1044,6 +1044,10 @@ namespace NgalaFarms.Infrastructure.Migrations
                     b.Property<int>("PlantationId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("PlantationIds")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("TotalWeightKg")
                         .HasColumnType("TEXT");
 
