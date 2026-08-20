@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Download, Printer, TrendingUp } from 'lucide-react'
 import apiClient from '../../lib/api'
+import { exportReport, saveReport } from '../../lib/reportExport'
 
 export default function WeeklyReportDetail()
 {
@@ -67,13 +68,13 @@ export default function WeeklyReportDetail()
                         <p className="text-gray-600 mt-2">{report.weekLabel || 'Report Details'}</p>
                     </div>
                     <div className="flex gap-3">
-                        <button className="btn-secondary flex items-center gap-2">
+                        <button onClick={() => exportReport(report, `weekly-report-${weekStart}`)} className="btn-secondary flex items-center gap-2">
                             <Download size={18} />
-                            Export PDF
+                            Export
                         </button>
-                        <button className="btn-secondary flex items-center gap-2">
+                        <button onClick={saveReport} className="btn-secondary flex items-center gap-2">
                             <Printer size={18} />
-                            Print
+                            Save PDF
                         </button>
                         <button className="btn-secondary flex items-center gap-2" onClick={() => navigate(-1)}>
                             <ArrowLeft size={18} />

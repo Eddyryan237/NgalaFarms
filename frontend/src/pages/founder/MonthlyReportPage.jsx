@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Download, Printer, Calendar } from 'lucide-react'
 import apiClient from '../../lib/api'
+import { exportReport, saveReport } from '../../lib/reportExport'
 
 export default function MonthlyReportPage()
 {
@@ -49,13 +50,13 @@ export default function MonthlyReportPage()
                         <p className="text-gray-600 mt-2">Performance metrics for selected period</p>
                     </div>
                     <div className="flex gap-3">
-                        <button className="btn-secondary flex items-center gap-2">
+                        <button onClick={() => report && exportReport(report, `monthly-report-${months}-months`)} disabled={!report} className="btn-secondary flex items-center gap-2 disabled:opacity-50">
                             <Download size={18} />
                             Export
                         </button>
-                        <button className="btn-secondary flex items-center gap-2">
+                        <button onClick={saveReport} disabled={!report} className="btn-secondary flex items-center gap-2 disabled:opacity-50">
                             <Printer size={18} />
-                            Print
+                            Save PDF
                         </button>
                     </div>
                 </div>
