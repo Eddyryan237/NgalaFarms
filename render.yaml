@@ -7,6 +7,10 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
+      - key: DatabaseProvider
+        value: Postgres
+      - key: DATABASE_URL
+        sync: false
       - key: DOTNET_USE_POLLING_FILE_WATCHER
         value: "true"
       - key: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE

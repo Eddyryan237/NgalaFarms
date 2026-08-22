@@ -51,7 +51,6 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
                         {navLink('/founder/dashboard', 'Dashboard', <Home size={18} />)}
                         {navLink('/founder/analytics', 'Analytics', <BarChart3 size={18} />)}
                         {navLink('/founder/reports', 'Weekly Reports', <FileText size={18} />)}
-                        {navLink('/founder/reports/general', 'General Reports', <FileText size={18} />)}
                         {navLink('/founder/audit-logs', 'Audit Logs', <TrendingUp size={18} />)}
                     </>
                 ) : (
@@ -61,7 +60,6 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
                         {navLink('/manager/daily-operations', 'Daily Ops', <TrendingUp size={18} />)}
                         {navLink('/manager/palm-harvest', 'Palm Harvest', <Zap size={18} />)}
                         {navLink('/manager/cattle', 'Cattle', <TrendingUp size={18} />)}
-                        {navLink('/manager/sheep', 'Sheep', <TrendingUp size={18} />)}
                         {navLink('/manager/production', 'Production', <Leaf size={18} />)}
                         {navLink('/manager/sales', 'Sales', <FileText size={18} />)}
                         {navLink('/manager/expenses', 'Expenses', <BarChart3 size={18} />)}

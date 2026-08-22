@@ -72,26 +72,6 @@ using (var scope = app.Services.CreateScope())
     await context.Database.MigrateAsync();
     await context.Database.ExecuteSqlRawAsync("""
         DO $$
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM information_schema.columns
-                WHERE table_schema = 'public'
-                  AND table_name = 'Cattle'
-                  AND column_name = 'Category') THEN
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.columns
-                    WHERE table_schema = 'public'
-                      AND table_name = 'Cattle'
-                      AND column_name = 'Breed') THEN
-                    ALTER TABLE "Cattle" RENAME COLUMN "Breed" TO "Category";
-                ELSE
-                    ALTER TABLE "Cattle" ADD COLUMN "Category" text NOT NULL DEFAULT '';
-                END IF;
-            END IF;
-        END $$;
-        """);
-    await context.Database.ExecuteSqlRawAsync("""
-        DO $$
         DECLARE column_record record;
         BEGIN
             FOR column_record IN
@@ -170,7 +150,7 @@ using (var scope = app.Services.CreateScope())
             var quotedColumn = QuoteIdentifier(columnName);
             var tableLiteral = QuoteLiteral(tableName);
             var columnLiteral = QuoteLiteral(columnName);
-            var normalizeSql = $"""
+            await context.Database.ExecuteSqlRawAsync($"""
                 DO $$
                 BEGIN
                     IF EXISTS (
@@ -182,8 +162,7 @@ using (var scope = app.Services.CreateScope())
                         EXECUTE 'ALTER TABLE {quotedTable} ALTER COLUMN {quotedColumn} TYPE {postgresType} USING NULLIF({quotedColumn}, '''')::{postgresType}';
                     END IF;
                 END $$;
-                """;
-            await context.Database.ExecuteSqlRawAsync(normalizeSql);
+                """);
         }
     }
     await DatabaseSeeder.SeedAsync(context, userManager, roleManager);

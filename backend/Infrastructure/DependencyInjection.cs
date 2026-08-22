@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using NgalaFarms.Domain.Entities;
 using NgalaFarms.Infrastructure.Data;
 using NgalaFarms.Infrastructure.Services;
@@ -17,13 +18,24 @@ public static class DependencyInjection
     {
         services.AddDbContext<NgalaFarmsDbContext>(options =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                ?? configuration.GetConnectionString("DefaultConnection");
             var provider = configuration["DatabaseProvider"] ?? "Postgres";
 
             if (provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase))
                 options.UseSqlite(connectionString ?? "Data Source=agriculture.db");
             else
-                options.UseNpgsql(connectionString ?? "Host=localhost;Port=5432;Database=ngala_farms;Username=ngala;Password=ngala_dev_password");
+            {
+                if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("Host=localhost", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+                        throw new InvalidOperationException("Production database is not configured. Set DATABASE_URL or ConnectionStrings__DefaultConnection to the Neon PostgreSQL connection string.");
+
+                    connectionString = "Host=localhost;Port=5432;Database=ngala_farms;Username=ngala;Password=ngala_dev_password";
+                }
+
+                options.UseNpgsql(NormalizePostgresConnectionString(connectionString));
+            }
 
             options.ConfigureWarnings(w =>
                 w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -84,5 +96,24 @@ public static class DependencyInjection
         services.AddScoped<IAnalyticsService, AnalyticsService>();
 
         return services;
+    }
+
+    private static string NormalizePostgresConnectionString(string connectionString)
+    {
+        if (!Uri.TryCreate(connectionString, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != "postgresql" && uri.Scheme != "postgres"))
+            return connectionString;
+
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.Port > 0 ? uri.Port : 5432,
+            Database = uri.AbsolutePath.Trim('/'),
+            Username = Uri.UnescapeDataString(uri.UserInfo.Split(':')[0]),
+            Password = Uri.UnescapeDataString(uri.UserInfo.Contains(':') ? uri.UserInfo[(uri.UserInfo.IndexOf(':') + 1)..] : string.Empty),
+            SslMode = SslMode.Require
+        };
+
+        return builder.ConnectionString;
     }
 }

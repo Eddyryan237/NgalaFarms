@@ -14,13 +14,11 @@ import WeeklyReportDetail from './pages/founder/WeeklyReportDetail'
 import DailyReportPage from './pages/founder/DailyReportPage'
 import MonthlyReportPage from './pages/founder/MonthlyReportPage'
 import YearlyReportPage from './pages/founder/YearlyReportPage'
-import GeneralReportsPage from './pages/founder/GeneralReportsPage'
 import AuditLogsPage from './pages/founder/AuditLogsPage'
 import DetailView from './pages/founder/DetailView'
 import ManagerDashboard from './pages/manager/ManagerDashboard'
 import DailyOperationsPage from './pages/manager/DailyOperationsPage'
 import CattleListPage from './pages/manager/CattleListPage'
-import SheepPage from './pages/manager/SheepPage'
 import PalmHarvestPage from './pages/manager/PalmHarvestPage'
 import SalesPage from './pages/manager/SalesPage'
 import ExpensesPage from './pages/manager/ExpensesPage'
@@ -110,7 +108,6 @@ function AppContent()
                         <Route path="/founder/reports/daily" element={<DailyReportPage />} />
                         <Route path="/founder/reports/monthly" element={<MonthlyReportPage />} />
                         <Route path="/founder/reports/yearly" element={<YearlyReportPage />} />
-                        <Route path="/founder/reports/general" element={<GeneralReportsPage />} />
                         <Route path="/founder/reports/:id" element={<WeeklyReportDetail />} />
                         <Route path="/founder/details/:type/:id" element={<DetailView />} />
                         <Route path="/founder/audit-logs" element={<AuditLogsPage />} />
@@ -122,7 +119,6 @@ function AppContent()
                         <Route path="/manager/dashboard" element={<ManagerDashboard />} />
                         <Route path="/manager/daily-operations" element={<DailyOperationsPage />} />
                         <Route path="/manager/cattle" element={<CattleListPage />} />
-                        <Route path="/manager/sheep" element={<SheepPage />} />
                         <Route path="/manager/palm-harvest" element={<PalmHarvestPage />} />
                         <Route path="/manager/production" element={<ProductionPage />} />
                         <Route path="/manager/sales" element={<SalesPage />} />

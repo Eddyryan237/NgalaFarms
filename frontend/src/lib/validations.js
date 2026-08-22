@@ -1,11 +1,12 @@
 import { z } from 'zod'
 
 export const cattleSchema = z.object({
-    category: z.enum(['Cows', 'Bulls', 'Nury Cow', 'Pregnant cows', 'Vigee', 'Ngary'], 'Category is required'),
+    tagNumber: z.string().min(1, 'Tag number is required'),
+    breed: z.string().min(1, 'Breed is required'),
     sex: z.enum(['Male', 'Female'], 'Sex is required'),
     dateOfBirth: z.string().min(1, 'Date of birth is required'),
-    currentWeightKg: z.number().positive('Weight must be greater than 0').optional(),
-    remarks: z.string().optional()
+    currentWeightKg: z.number().min(1, 'Weight must be greater than 0'),
+    description: z.string().optional()
 })
 
 export const palmHarvestSchema = z.object({
@@ -15,6 +16,7 @@ export const palmHarvestSchema = z.object({
     numberOfBunches: z.coerce.number().min(1, 'Fruit bunches must be at least 1'),
     totalWeightKg: z.coerce.number().min(0.1, 'Estimated yield must be greater than 0'),
     harvestTeam: z.string().min(1, 'Harvest team is required'),
+    laborCost: z.coerce.number().min(0, 'Labor cost is required'),
     notes: z.string().optional()
 })
 
