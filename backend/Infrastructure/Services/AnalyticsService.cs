@@ -60,7 +60,7 @@ public class AnalyticsService : IAnalyticsService
         var totalAcqCost = await _db.Cattle.Where(c => !c.IsDeleted).SumAsync(c => c.AcquisitionCost);
         var feedCost = await _db.CattleFeedings.SumAsync(f => f.Cost);
         var vetCost = await _db.CattleHealthRecords.Where(h => !h.IsDeleted).SumAsync(h => h.TreatmentCost);
-        var avgWeight = activeCattle > 0 ? await _db.Cattle.Where(c => !c.IsDeleted && c.Status == CattleStatus.Active).AverageAsync(c => c.CurrentWeightKg) : 0;
+        var avgWeight = activeCattle > 0 ? await _db.Cattle.Where(c => !c.IsDeleted && c.Status == CattleStatus.Active).AverageAsync(c => c.CurrentWeightKg ?? 0) : 0;
         var cattleProfit = cattleRev - (totalAcqCost + feedCost + vetCost);
 
         // Expense breakdown
@@ -82,16 +82,18 @@ public class AnalyticsService : IAnalyticsService
             var me = ms.AddMonths(1);
             var r = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= ms && s.SaleDate < me).SumAsync(s => s.TotalPrice)
                   + await _db.CattleSales.Where(s => s.SaleDate >= ms && s.SaleDate < me).SumAsync(s => s.SalePrice);
-                 var e2 = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= ms && e.Date < me).SumAsync(e => e.Amount)
-                     + await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid && s.PeriodStart >= ms && s.PeriodStart < me).SumAsync(s => s.Amount);
+            var e2 = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= ms && e.Date < me).SumAsync(e => e.Amount);
             months.Add(new MonthlyRevenueDto { Month = md.ToString("MMM yyyy"), Revenue = r, Expenses = e2, Profit = r - e2 });
         }
 
         return new CompanyAnalyticsDto
         {
-            TotalRevenue = totalRevenue, TotalExpenses = totalExpenses, NetProfit = netProfit,
+            TotalRevenue = totalRevenue,
+            TotalExpenses = totalExpenses,
+            NetProfit = netProfit,
             ProfitMarginPercent = totalRevenue > 0 ? Math.Round(netProfit / totalRevenue * 100, 1) : 0,
-            MonthlyTrend = months, ExpenseBreakdown = breakdown,
+            MonthlyTrend = months,
+            ExpenseBreakdown = breakdown,
             PalmOil = new PalmOilAnalyticsDto { TotalFruitHarvestedKg = fruitKg, TotalOilProducedLitres = oilLitres, TotalOilSoldLitres = oilSold, CurrentStockLitres = oilStock, ProductionCost = palmProdCost + palmExp, Revenue = palmRev, Profit = palmRev - palmProdCost - palmExp, AverageYieldPercent = Math.Round(avgYield, 2), HarvestTrend = harvestTrend },
             Cattle = new CattleAnalyticsDto { TotalActiveCattle = activeCattle, MaleCattle = male, FemaleCattle = female, YoungCattle = young, AdultCattle = activeCattle - young, AcquisitionCostTotal = totalAcqCost, FeedingCostTotal = feedCost, VeterinaryCostTotal = vetCost, SalesRevenue = cattleRev, Profit = cattleProfit, AverageWeightKg = Math.Round(avgWeight, 1) }
         };

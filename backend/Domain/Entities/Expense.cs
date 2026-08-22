@@ -12,6 +12,7 @@ public class Expense : BaseEntity
     public DateTime Date { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
     public int? EmployeeId { get; set; }
+    public int? SalaryId { get; set; }
     public Employee? Employee { get; set; }
     public string? ReceiptPath { get; set; }
     public string? Notes { get; set; }

@@ -9,15 +9,16 @@ public class CattleDto
     public string? TagNumber { get; set; }
     public string? Name { get; set; }
     public CattleSex Sex { get; set; }
-    public string Breed { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
     public DateTime DateOfBirth { get; set; }
     public DateTime AcquisitionDate { get; set; }
     public decimal AcquisitionCost { get; set; }
     public CattleStatus Status { get; set; }
-    public decimal CurrentWeightKg { get; set; }
+    public decimal? CurrentWeightKg { get; set; }
     public string? ParentInfo { get; set; }
     public string? Location { get; set; }
     public string? Notes { get; set; }
+    public string? Remarks { get; set; }
     public int AgeMonths { get; set; }
     public DateTime CreatedAt { get; set; }
 }
@@ -27,14 +28,15 @@ public class CreateCattleRequest
     public string? TagNumber { get; set; }
     public string? Name { get; set; }
     public CattleSex Sex { get; set; }
-    public string Breed { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
     public DateTime DateOfBirth { get; set; }
     public DateTime AcquisitionDate { get; set; }
     public decimal AcquisitionCost { get; set; }
-    public decimal CurrentWeightKg { get; set; }
+    public decimal? CurrentWeightKg { get; set; }
     public string? ParentInfo { get; set; }
     public string? Location { get; set; }
     public string? Notes { get; set; }
+    public string? Remarks { get; set; }
 }
 
 public class CattleHealthRecordDto

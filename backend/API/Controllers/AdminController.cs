@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using NgalaFarms.Infrastructure.Data;
 
 namespace NgalaFarms.API.Controllers;
@@ -37,10 +36,6 @@ public class AdminController : ControllerBase
             _db.Salaries.RemoveRange(_db.Salaries);
             _db.Inventories.RemoveRange(_db.Inventories);
             _db.StockTransactions.RemoveRange(_db.StockTransactions);
-
-            var settings = await _db.CompanySettings.FirstOrDefaultAsync();
-            if (settings != null)
-                settings.SeedDataEnabled = false;
 
             await _db.SaveChangesAsync();
 

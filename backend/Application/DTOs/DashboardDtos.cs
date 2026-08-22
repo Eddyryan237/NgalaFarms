@@ -5,6 +5,7 @@ public class FounderDashboardDto
     public FinancialKpiDto Financial { get; set; } = new();
     public PalmKpiDto PalmOil { get; set; } = new();
     public CattleKpiDto Cattle { get; set; } = new();
+    public SheepKpiDto Sheep { get; set; } = new();
     public CompanyKpiDto Company { get; set; } = new();
 }
 
@@ -44,6 +45,14 @@ public class CattleKpiDto
     public int HealthAlerts { get; set; }
     public int VaccinationsDue { get; set; }
     public decimal CattleRevenue { get; set; }
+}
+
+public class SheepKpiDto
+{
+    public int TotalSheep { get; set; }
+    public int MaleSheep { get; set; }
+    public int FemaleSheep { get; set; }
+    public decimal TotalWeightKg { get; set; }
 }
 
 public class CompanyKpiDto

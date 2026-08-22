@@ -1,19 +1,39 @@
-version: '3.8'
-
 services:
+  ngala-db:
+    build:
+      context: ./Database
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ngala_farms}
+      POSTGRES_USER: ${POSTGRES_USER:-ngala}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ngala_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ngala-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ngala-network
+
   ngala-api:
     build:
       context: .
       dockerfile: backend/API/Dockerfile
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5000
-      ConnectionStrings__DefaultConnection: Data Source=/data/ngala-farms.db
+      DatabaseProvider: Postgres
+      ConnectionStrings__DefaultConnection: Host=ngala-db;Port=5432;Database=${POSTGRES_DB:-ngala_farms};Username=${POSTGRES_USER:-ngala};Password=${POSTGRES_PASSWORD:-ngala_dev_password}
       JwtSettings__SecretKey: ${JWT_SECRET:-NgalaFarmsSecretKey2026!PalmOilAndCattleXAF!}
-    volumes:
-      - ngala-data:/data
+    depends_on:
+      ngala-db:
+        condition: service_healthy
     networks:
       - ngala-network
 
@@ -29,7 +49,7 @@ services:
       - ngala-network
 
 volumes:
-  ngala-data:
+  ngala-postgres-data:
 
 networks:
   ngala-network:

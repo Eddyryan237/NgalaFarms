@@ -24,6 +24,7 @@ public class NgalaFarmsDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Production> Productions => Set<Production>();
     public DbSet<Cattle> Cattle => Set<Cattle>();
+    public DbSet<Sheep> Sheep => Set<Sheep>();
     public DbSet<CattleHealthRecord> CattleHealthRecords => Set<CattleHealthRecord>();
     public DbSet<CattleVaccination> CattleVaccinations => Set<CattleVaccination>();
     public DbSet<CattleFeeding> CattleFeedings => Set<CattleFeeding>();
@@ -53,6 +54,7 @@ public class NgalaFarmsDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Sale>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Expense>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Cattle>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Sheep>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Notification>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<DailyOperation>().HasQueryFilter(e => !e.IsDeleted);
     }

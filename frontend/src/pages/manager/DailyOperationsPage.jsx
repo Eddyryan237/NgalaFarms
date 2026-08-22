@@ -31,7 +31,7 @@ export default function DailyOperationsPage()
         operationType: [],
         description: '',
         date: new Date().toISOString().split('T')[0],
-        plantationId: [],
+        plantationId: '',
         palmBlockId: '',
         performedBy: ''
     })
@@ -70,7 +70,7 @@ export default function DailyOperationsPage()
                 operationType: [],
                 description: '',
                 date: new Date().toISOString().split('T')[0],
-                plantationId: [],
+                plantationId: '',
                 palmBlockId: '',
                 performedBy: ''
             })
@@ -108,7 +108,7 @@ export default function DailyOperationsPage()
         const payload = {
             ...formData,
             operationType: formData.operationType.join(', '),
-            plantationId: formData.plantationId.length > 0 ? formData.plantationId.join(', ') : null,
+            plantationId: formData.plantationId || null,
             palmBlockId: formData.palmBlockId || null,
             performedBy: formData.performedBy || 'Manager'
         }
@@ -121,10 +121,10 @@ export default function DailyOperationsPage()
         setEditingId(op.id)
         setSelectedOperation(op)
         setFormData({
-            operationType: (op.operationType || '').split(',').map(type => type.trim()).filter(Boolean),
+            operationType: op.operationType ? op.operationType.split(',').map(type => type.trim()).filter(Boolean) : [],
             description: op.description || '',
             date: op.date ? new Date(op.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            plantationId: (op.plantationId || '').split(',').map(value => value.trim()).filter(Boolean),
+            plantationId: op.plantationId || '',
             palmBlockId: op.palmBlockId || '',
             performedBy: op.performedBy || ''
         })
@@ -139,7 +139,7 @@ export default function DailyOperationsPage()
             operationType: [],
             description: '',
             date: new Date().toISOString().split('T')[0],
-            plantationId: [],
+            plantationId: '',
             palmBlockId: '',
             performedBy: ''
         })
@@ -212,25 +212,16 @@ export default function DailyOperationsPage()
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Operation Type *
                                 </label>
-                                <div className="grid grid-cols-2 gap-2 rounded-lg border border-gray-300 bg-white p-3">
+                                <select
+                                    multiple
+                                    value={formData.operationType}
+                                    onChange={(e) => setFormData({ ...formData, operationType: Array.from(e.target.selectedOptions, option => option.value) })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                >
                                     {OPERATION_TYPES.map(type => (
-                                        <label key={type} className="flex items-center gap-2 text-sm text-gray-700">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.operationType.includes(type)}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    operationType: e.target.checked
-                                                        ? [...formData.operationType, type]
-                                                        : formData.operationType.filter(value => value !== type)
-                                                })}
-                                                className="h-4 w-4 accent-green-600"
-                                            />
-                                            {type}
-                                        </label>
+                                        <option key={type} value={type}>{type}</option>
                                     ))}
-                                </div>
-                                {formData.operationType.length === 0 && <p className="text-red-600 text-xs mt-1">Select at least one operation type</p>}
+                                </select>
                             </div>
 
                             <div>
@@ -249,27 +240,18 @@ export default function DailyOperationsPage()
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Fields (Optional)
+                                    Plantation (Optional)
                                 </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-gray-300 bg-white p-3 max-h-40 overflow-y-auto">
+                                <select
+                                    value={formData.plantationId || ''}
+                                    onChange={(e) => setFormData({ ...formData, plantationId: e.target.value || '' })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                >
+                                    <option value="">No plantation selected</option>
                                     {plantations.map(p => (
-                                        <label key={p.id} className="flex items-center gap-2 text-sm text-gray-700">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.plantationId.includes(String(p.id))}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    plantationId: e.target.checked
-                                                        ? [...formData.plantationId, String(p.id)]
-                                                        : formData.plantationId.filter(value => value !== String(p.id))
-                                                })}
-                                                className="h-4 w-4 accent-green-600"
-                                            />
-                                            {p.name}
-                                        </label>
+                                        <option key={p.id} value={p.id}>{p.name}</option>
                                     ))}
-                                </div>
-                                {formData.plantationId.length > 0 && <p className="text-xs text-gray-500 mt-1">{formData.plantationId.length} field(s) selected</p>}
+                                </select>
                             </div>
 
                             <div>
@@ -370,7 +352,7 @@ export default function DailyOperationsPage()
                                 <th className="text-left px-4 py-3 font-semibold text-gray-700">Operation Type</th>
                                 <th className="text-left px-4 py-3 font-semibold text-gray-700">Description</th>
                                 <th className="text-left px-4 py-3 font-semibold text-gray-700">Performed By</th>
-                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Field</th>
+                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Plantation</th>
                                 <th className="text-center px-4 py-3 font-semibold text-gray-700">Action</th>
                             </tr>
                         </thead>
@@ -385,7 +367,7 @@ export default function DailyOperationsPage()
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
-                                            {op.operationType}
+                                            {(op.operationType || '').split(',').map(type => type.trim()).filter(Boolean).join(', ')}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 max-w-xs truncate">{op.description || '-'}</td>
@@ -457,7 +439,7 @@ export default function DailyOperationsPage()
                             <p className="font-semibold text-gray-900">{selectedOperation.performedBy || 'Manager'}</p>
                         </div>
                         <div>
-                            <p className="text-gray-500">Field</p>
+                            <p className="text-gray-500">Plantation</p>
                             <p className="font-semibold text-gray-900">{selectedOperation.plantationId || 'Not assigned'}</p>
                         </div>
                         <div>

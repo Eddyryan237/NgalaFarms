@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -33,7 +34,7 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
     [Fact]
     public async Task ManagerCreatesSale_FounderDashboardReflectsRevenue()
     {
-        var token = await LoginAndGetToken("manager@ngalafarms.com", "ChangeMe#2026");
+        var token = await LoginAndGetToken("manager@ngalafarms.com", "nmanager123");
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -43,19 +44,19 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
         res.EnsureSuccessStatusCode();
 
         // Login as founder and check dashboard
-        var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "ChangeMe#2026");
+        var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "founderngala123");
         var founderClient = _factory.CreateClient();
         founderClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", founderToken);
         var dashRes = await founderClient.GetAsync("/api/dashboard/founder");
         dashRes.EnsureSuccessStatusCode();
-        var dashboard = await dashRes.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        dashboard.Should().ContainKey("totalRevenue");
+        var dashboard = await dashRes.Content.ReadFromJsonAsync<JsonElement>();
+        dashboard.GetProperty("financial").GetProperty("totalRevenue").GetDecimal().Should().BeGreaterThan(0);
     }
 
     [Fact]
     public async Task ManagerCanCreateAndUpdateSale_FounderSeesUpdatedRevenue()
     {
-        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "ChangeMe#2026");
+        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "nmanager123");
         var managerClient = _factory.CreateClient();
         managerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", managerToken);
 
@@ -73,7 +74,7 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
 
         var createRes = await managerClient.PostAsJsonAsync("/api/sales", createPayload);
         createRes.EnsureSuccessStatusCode();
-        using var createdJson = await createRes.Content.ReadFromJsonAsync<JsonElement>();
+        var createdJson = await createRes.Content.ReadFromJsonAsync<JsonElement>();
         createdJson.TryGetProperty("id", out var idElement).Should().BeTrue();
 
         var saleId = idElement.GetInt32();
@@ -93,22 +94,18 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
         var updateRes = await managerClient.PutAsJsonAsync($"/api/sales/{saleId}", updatePayload);
         updateRes.EnsureSuccessStatusCode();
 
-        var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "ChangeMe#2026");
+        var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "founderngala123");
         var founderClient = _factory.CreateClient();
         founderClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", founderToken);
 
         var listRes = await founderClient.GetAsync("/api/sales");
         listRes.EnsureSuccessStatusCode();
-        using var salesJson = await listRes.Content.ReadFromJsonAsync<JsonElement>();
+        var salesJson = await listRes.Content.ReadFromJsonAsync<JsonElement>();
 
         salesJson.ValueKind.Should().Be(JsonValueKind.Array);
-        salesJson.EnumerateArray().Should().ContainSingle(sale =>
-            sale.TryGetProperty("id", out var saleIdEl) &&
-            saleIdEl.GetInt32() == saleId &&
-            sale.TryGetProperty("customerName", out var customerNameEl) &&
-            customerNameEl.GetString() == "Integration Customer Updated" &&
-            sale.TryGetProperty("notes", out var notesEl) &&
-            notesEl.GetString() == "Updated sale");
+        var updatedSale = salesJson.EnumerateArray().Single(sale => sale.GetProperty("id").GetInt32() == saleId);
+        updatedSale.GetProperty("customerName").GetString().Should().Be("Integration Customer Updated");
+        updatedSale.GetProperty("notes").GetString().Should().Be("Updated sale");
 
         var dashboardRes = await founderClient.GetAsync("/api/dashboard/founder");
         dashboardRes.EnsureSuccessStatusCode();
@@ -119,7 +116,7 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
     [Fact]
     public async Task ManagerCanCreateAndUpdateDailyOperation_FounderCanSeeUpdatedRecord()
     {
-        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "ChangeMe#2026");
+        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "nmanager123");
         var managerClient = _factory.CreateClient();
         managerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", managerToken);
 
@@ -134,7 +131,7 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
 
         var createRes = await managerClient.PostAsJsonAsync("/api/daily-operations", createPayload);
         createRes.EnsureSuccessStatusCode();
-        using var createdOperationJson = await createRes.Content.ReadFromJsonAsync<JsonElement>();
+        var createdOperationJson = await createRes.Content.ReadFromJsonAsync<JsonElement>();
         createdOperationJson.TryGetProperty("id", out var idElement).Should().BeTrue();
 
         var operationId = idElement.GetInt32();
@@ -152,28 +149,24 @@ public class ManagerToFounderFlowTests : IClassFixture<WebApplicationFactory<Pro
         var updateRes = await managerClient.PutAsJsonAsync($"/api/daily-operations/{operationId}", updatePayload);
         updateRes.EnsureSuccessStatusCode();
 
-        var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "ChangeMe#2026");
+        var founderToken = await LoginAndGetToken("founder@ngalafarms.com", "founderngala123");
         var founderClient = _factory.CreateClient();
         founderClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", founderToken);
 
         var listRes = await founderClient.GetAsync("/api/daily-operations");
         listRes.EnsureSuccessStatusCode();
-        using var operationsJson = await listRes.Content.ReadFromJsonAsync<JsonElement>();
+        var operationsJson = await listRes.Content.ReadFromJsonAsync<JsonElement>();
 
         operationsJson.ValueKind.Should().Be(JsonValueKind.Array);
-        operationsJson.EnumerateArray().Should().ContainSingle(op =>
-            op.TryGetProperty("id", out var opIdElement) &&
-            op.TryGetProperty("operationType", out var opTypeElement) &&
-            op.TryGetProperty("description", out var opDescriptionElement) &&
-            opIdElement.GetInt32() == operationId &&
-            opTypeElement.GetString() == "Weeding" &&
-            opDescriptionElement.GetString() == "Cleared and weeded block A1");
+        var updatedOperation = operationsJson.EnumerateArray().Single(op => op.GetProperty("id").GetInt32() == operationId);
+        updatedOperation.GetProperty("operationType").GetString().Should().Be("Weeding");
+        updatedOperation.GetProperty("description").GetString().Should().Be("Cleared and weeded block A1");
     }
 
     [Fact]
     public async Task ManagerCannotCreateHarvestWithInvalidPalmBlockId()
     {
-        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "ChangeMe#2026");
+        var managerToken = await LoginAndGetToken("manager@ngalafarms.com", "nmanager123");
         var managerClient = _factory.CreateClient();
         managerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", managerToken);
 

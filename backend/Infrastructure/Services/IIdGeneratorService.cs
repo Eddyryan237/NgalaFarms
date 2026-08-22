@@ -4,6 +4,7 @@ public interface IIdGeneratorService
 {
     Task<string> GenerateEmployeeIdAsync();
     Task<string> GenerateCattleIdAsync();
+    Task<string> GenerateSheepIdAsync();
     Task<string> GenerateHarvestIdAsync();
     Task<string> GenerateProcessingIdAsync();
     Task<string> GenerateBatchIdAsync();
@@ -15,5 +16,4 @@ public interface IIdGeneratorService
     Task<string> GeneratePurchaseIdAsync();
     Task<string> GenerateCattleSaleIdAsync();
     Task<string> GenerateWeeklyReportIdAsync();
-    Task<string> GeneratePayrollReceiptNumberAsync();
 }

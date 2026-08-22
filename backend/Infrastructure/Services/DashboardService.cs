@@ -58,6 +58,7 @@ public class DashboardService : IDashboardService
         var youthCutoff = now.AddMonths(-24);
         var youngCattle = await _db.Cattle.CountAsync(c => !c.IsDeleted && c.Status == CattleStatus.Active && c.DateOfBirth >= youthCutoff);
 
+        var sheep = await _db.Sheep.Where(s => !s.IsDeleted).ToListAsync();
         var employees = await _db.Employees.CountAsync(e => !e.IsDeleted && e.Status == EmployeeStatus.Active);
         var customers = await _db.Customers.CountAsync(c => !c.IsDeleted);
         var suppliers = await _db.Suppliers.CountAsync(s => !s.IsDeleted);
@@ -69,6 +70,7 @@ public class DashboardService : IDashboardService
             Financial = new FinancialKpiDto { TotalRevenue = totalRevenue, TotalExpenses = totalExpenses, NetProfit = netProfit, ProfitMarginPercent = totalRevenue > 0 ? Math.Round(netProfit / totalRevenue * 100, 1) : 0, MonthlyRevenue = months },
             PalmOil = new PalmKpiDto { TotalFruitHarvestedKg = palmFruitKg, TotalOilProducedLitres = palmOilLitres, CurrentStockLitres = palmStock, AverageYieldPercent = Math.Round(avgYield, 2), PalmRevenue = palmRevenue, PalmExpenses = palmExpenses },
             Cattle = new CattleKpiDto { TotalCattle = activeCattle + maleCattle - maleCattle + activeCattle - activeCattle + activeCattle, MaleCattle = maleCattle, FemaleCattle = femaleCattle, ActiveCattle = activeCattle, HealthAlerts = healthAlerts, VaccinationsDue = vacsDue, CattleRevenue = cattleRevenue },
+            Sheep = new SheepKpiDto { TotalSheep = sheep.Count, MaleSheep = sheep.Count(s => s.Sex == "Male"), FemaleSheep = sheep.Count(s => s.Sex == "Female"), TotalWeightKg = sheep.Sum(s => s.CurrentWeightKg ?? 0) },
             Company = new CompanyKpiDto { TotalEmployees = employees, TotalCustomers = customers, TotalSuppliers = suppliers, LowStockItems = lowStock, UnreadNotifications = unread }
         };
     }
@@ -86,7 +88,6 @@ public class DashboardService : IDashboardService
         var healthAlerts = await _db.CattleHealthRecords.CountAsync(h => !h.IsDeleted && h.FollowUpDate >= now);
         var todaySales = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= today && s.SaleDate < tomorrow).SumAsync(s => s.TotalPrice);
         var todayExpenses = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= today && e.Date < tomorrow).SumAsync(e => e.Amount);
-        var todaySalaries = await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid && s.PaymentDate >= today && s.PaymentDate < tomorrow).SumAsync(s => s.Amount);
         var activeEmp = await _db.Employees.CountAsync(e => !e.IsDeleted && e.Status == EmployeeStatus.Active);
 
         return new ManagerDashboardDto
@@ -97,7 +98,7 @@ public class DashboardService : IDashboardService
             TotalActiveCattle = activeCattle,
             CattleHealthAlerts = healthAlerts,
             TodaysSalesRevenue = todaySales,
-            TodaysExpenses = todayExpenses + todaySalaries,
+            TodaysExpenses = todayExpenses,
             ActiveEmployees = activeEmp
         };
     }

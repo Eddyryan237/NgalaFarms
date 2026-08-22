@@ -1,12 +1,11 @@
 import { z } from 'zod'
 
 export const cattleSchema = z.object({
-    tagNumber: z.string().min(1, 'Tag number is required'),
-    breed: z.string().min(1, 'Breed is required'),
+    category: z.enum(['Cows', 'Bulls', 'Nury Cow', 'Pregnant cows', 'Vigee', 'Ngary'], 'Category is required'),
     sex: z.enum(['Male', 'Female'], 'Sex is required'),
     dateOfBirth: z.string().min(1, 'Date of birth is required'),
-    currentWeightKg: z.number().min(1, 'Weight must be greater than 0'),
-    description: z.string().optional()
+    currentWeightKg: z.number().positive('Weight must be greater than 0').optional(),
+    remarks: z.string().optional()
 })
 
 export const palmHarvestSchema = z.object({
@@ -44,12 +43,11 @@ export const expenseSchema = z.object({
     paymentMethod: z.number().min(0, 'Payment method is required')
 })
 
-export const payrollSchema = z.object({
-    employeeId: z.coerce.number().min(1, 'Employee is required'),
-    amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
-    period: z.string().min(1, 'Payroll month is required'),
-    paymentDate: z.string().min(1, 'Payment date is required'),
-    paymentMethod: z.enum(['Cash', 'BankTransfer', 'MobileMoney', 'Cheque', 'Other'], 'Payment method is required'),
+export const processingSchema = z.object({
+    harvestId: z.string().min(1, 'Harvest is required'),
+    processingDate: z.string().min(1, 'Processing date is required'),
+    freshFruitBunchKg: z.number().min(0.1, 'Fresh fruit bunch weight must be greater than 0'),
+    processedOilKg: z.number().min(0.1, 'Processed oil weight must be greater than 0'),
     notes: z.string().optional()
 })
 
@@ -67,10 +65,11 @@ export const employeeSchema = z.object({
     notes: z.string().optional()
 })
 
-export const processingSchema = z.object({
-    harvestId: z.string().min(1, 'Harvest is required'),
-    processingDate: z.string().min(1, 'Processing date is required'),
-    freshFruitBunchKg: z.number().min(0.1, 'Fresh fruit bunch weight must be greater than 0'),
-    processedOilKg: z.number().min(0.1, 'Processed oil weight must be greater than 0'),
+export const payrollSchema = z.object({
+    employeeId: z.coerce.number().min(1, 'Employee is required'),
+    amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
+    period: z.string().min(1, 'Payroll month is required'),
+    paymentDate: z.string().min(1, 'Payment date is required'),
+    paymentMethod: z.enum(['Cash', 'BankTransfer', 'MobileMoney', 'Cheque', 'Other'], 'Payment method is required'),
     notes: z.string().optional()
 })

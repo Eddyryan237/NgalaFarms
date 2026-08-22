@@ -21,6 +21,12 @@ public class IdGeneratorService : IIdGeneratorService
         return $"COW-{count:D4}";
     }
 
+    public async Task<string> GenerateSheepIdAsync()
+    {
+        var count = await _context.Sheep.CountAsync() + 1;
+        return $"SHP-{count:D4}";
+    }
+
     public async Task<string> GenerateHarvestIdAsync()
     {
         var count = await _context.PalmHarvests.CountAsync() + 1;
@@ -85,11 +91,5 @@ public class IdGeneratorService : IIdGeneratorService
     {
         var count = await _context.WeeklyReports.CountAsync() + 1;
         return $"WR-{count:D4}";
-    }
-
-    public async Task<string> GeneratePayrollReceiptNumberAsync()
-    {
-        var count = await _context.Salaries.CountAsync() + 1;
-        return $"PAY-{DateTime.UtcNow:yyyy}-{count:D4}";
     }
 }

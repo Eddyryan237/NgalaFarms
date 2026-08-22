@@ -4,7 +4,6 @@ namespace NgalaFarms.Domain.Entities;
 
 public class Salary : BaseEntity
 {
-    public string ReceiptNumber { get; set; } = string.Empty;
     public int EmployeeId { get; set; }
     public Employee Employee { get; set; } = null!;
     public decimal Amount { get; set; }

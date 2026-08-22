@@ -5,7 +5,6 @@ public class PalmHarvestDto
     public int Id { get; set; }
     public string HarvestId { get; set; } = string.Empty;
     public int PlantationId { get; set; }
-    public List<int> PlantationIds { get; set; } = new();
     public string PlantationName { get; set; } = string.Empty;
     public int? PalmBlockId { get; set; }
     public string? BlockName { get; set; }
@@ -13,7 +12,6 @@ public class PalmHarvestDto
     public int NumberOfBunches { get; set; }
     public decimal TotalWeightKg { get; set; }
     public string? HarvestTeam { get; set; }
-    public decimal LaborCost { get; set; }
     public string? Notes { get; set; }
     public bool IsProcessed { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -22,13 +20,11 @@ public class PalmHarvestDto
 public class CreatePalmHarvestRequest
 {
     public int PlantationId { get; set; }
-    public List<int>? PlantationIds { get; set; }
     public int? PalmBlockId { get; set; }
     public DateTime HarvestDate { get; set; }
     public int NumberOfBunches { get; set; }
     public decimal TotalWeightKg { get; set; }
     public string? HarvestTeam { get; set; }
-    public decimal LaborCost { get; set; }
     public string? Notes { get; set; }
 }
 

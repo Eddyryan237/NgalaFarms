@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Plus, AlertCircle, Loader } from 'lucide-react'
+import { Plus, AlertCircle, Loader, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import apiClient from '../../lib/api'
 import Modal from '../../components/Modal'
 import { cattleSchema } from '../../lib/validations'
 import { useFormHandler } from '../../hooks/useFormHandler'
+import { useToast } from '../../hooks/useToast'
 
 export default function CattleListPage()
 {
     const [showModal, setShowModal] = useState(false)
-    const { data: cattle = [], isLoading } = useQuery({
+    const { addToast } = useToast()
+    const { data: cattle = [], isLoading, refetch } = useQuery({
         queryKey: ['cattle'],
         queryFn: () => apiClient.get('/cattle').then(r => r.data)
     })
@@ -36,6 +38,21 @@ export default function CattleListPage()
     {
         reset()
         setShowModal(true)
+    }
+
+    const handleDeleteCattle = async (cattle) =>
+    {
+        if (!window.confirm(`Delete cattle ${cattle.cattleId}?`)) return
+
+        try
+        {
+            await apiClient.delete(`/cattle/${cattle.id}`)
+            addToast('Cattle deleted successfully', 'success')
+            refetch()
+        } catch (err)
+        {
+            addToast(err.response?.data?.message || 'Failed to delete cattle', 'error')
+        }
     }
 
     return (
@@ -63,7 +80,7 @@ export default function CattleListPage()
                             <tr className="text-gray-600 font-semibold">
                                 <th className="text-left py-3 px-4">ID</th>
                                 <th className="text-left py-3 px-4">Tag</th>
-                                <th className="text-left py-3 px-4">Breed</th>
+                                <th className="text-left py-3 px-4">Category</th>
                                 <th className="text-left py-3 px-4">Sex</th>
                                 <th className="text-left py-3 px-4">Weight (KG)</th>
                                 <th className="text-left py-3 px-4">Status</th>
@@ -75,13 +92,16 @@ export default function CattleListPage()
                                 <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <td className="py-3 px-4 font-medium">{c.cattleId}</td>
                                     <td className="py-3 px-4">{c.tagNumber}</td>
-                                    <td className="py-3 px-4">{c.breed}</td>
+                                    <td className="py-3 px-4">{c.category}</td>
                                     <td className="py-3 px-4">{c.sex}</td>
-                                    <td className="py-3 px-4">{c.currentWeightKg}</td>
+                                    <td className="py-3 px-4">{c.currentWeightKg ?? '-'}</td>
                                     <td className="py-3 px-4"><span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">{c.status}</span></td>
                                     <td className="py-3 px-4 text-xs space-x-2">
                                         <button className="text-blue-600 hover:underline">View</button>
                                         <button className="text-orange-600 hover:underline">Edit</button>
+                                        <button type="button" onClick={() => handleDeleteCattle(c)} className="text-red-600 hover:text-red-800" title={`Delete ${c.cattleId}`}>
+                                            <Trash2 size={16} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -99,17 +119,14 @@ export default function CattleListPage()
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tag Number</label>
-                            <input type="text" {...register('tagNumber')} className="input-field" placeholder="e.g., COW-001" />
-                            {errors.tagNumber && <p className="text-red-600 text-xs mt-1">{errors.tagNumber.message}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Breed</label>
-                            <input type="text" {...register('breed')} className="input-field" placeholder="e.g., Friesian" />
-                            {errors.breed && <p className="text-red-600 text-xs mt-1">{errors.breed.message}</p>}
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select {...register('category')} className="input-field">
+                                <option value="">Select category</option>
+                                {['Cows', 'Bulls', 'Nury Cow', 'Pregnant cows', 'Vigee', 'Ngary'].map(category => <option key={category} value={category}>{category}</option>)}
+                            </select>
+                            {errors.category && <p className="text-red-600 text-xs mt-1">{errors.category.message}</p>}
                         </div>
 
                         <div>
@@ -130,14 +147,14 @@ export default function CattleListPage()
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Current Weight (KG)</label>
-                            <input type="number" step="0.01" {...register('currentWeightKg', { valueAsNumber: true })} className="input-field" placeholder="0.00" />
+                            <input type="number" step="0.01" {...register('currentWeightKg', { setValueAs: value => value === '' ? undefined : Number(value) })} className="input-field" placeholder="Optional" />
                             {errors.currentWeightKg && <p className="text-red-600 text-xs mt-1">{errors.currentWeightKg.message}</p>}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea {...register('description')} className="input-field" rows="3" placeholder="Additional notes..." />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                        <textarea {...register('remarks')} className="input-field" rows="3" placeholder="Manager remarks..." />
                     </div>
 
                     <div className="flex gap-3 pt-4">

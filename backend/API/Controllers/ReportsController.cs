@@ -49,10 +49,16 @@ public class ReportsController : ControllerBase
         var operations = await _db.DailyOperations.Where(o => !o.IsDeleted && o.Date >= start && o.Date < end).ToListAsync();
         var harvests = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= start && h.HarvestDate < end).ToListAsync();
 
-        return Ok(new {
+        return Ok(new
+        {
             date = start,
-            expenses, production, sales, operations, harvests,
-            totals = new {
+            expenses,
+            production,
+            sales,
+            operations,
+            harvests,
+            totals = new
+            {
                 expensesTotal = expenses.Sum(e => e.Amount),
                 productionCount = production.Count,
                 salesTotal = sales.Sum(s => s.TotalPrice),
@@ -94,6 +100,22 @@ public class ReportsController : ControllerBase
         var harvests = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= start && h.HarvestDate < end).ToListAsync();
 
         return Ok(new { start, end = end.AddDays(-1), expenses, production, sales, operations, harvests });
+    }
+
+    [HttpGet("general")]
+    [Authorize(Roles = "Founder")]
+    public async Task<IActionResult> General()
+    {
+        var cattle = await _db.Cattle.Where(c => !c.IsDeleted).ToListAsync();
+        var sheep = await _db.Sheep.Where(s => !s.IsDeleted).ToListAsync();
+        var harvests = await _db.PalmHarvests.Where(h => !h.IsDeleted).ToListAsync();
+        var processing = await _db.PalmProcessings.Where(p => !p.IsDeleted).ToListAsync();
+        return Ok(new
+        {
+            cattle = new { total = cattle.Count, byCategory = cattle.GroupBy(c => c.Category).Select(g => new { category = g.Key, count = g.Count() }), totalWeightKg = cattle.Sum(c => c.CurrentWeightKg) },
+            sheep = new { total = sheep.Count, male = sheep.Count(s => s.Sex == "Male"), female = sheep.Count(s => s.Sex == "Female"), totalWeightKg = sheep.Sum(s => s.CurrentWeightKg) },
+            palmOil = new { harvestKg = harvests.Sum(h => h.TotalWeightKg), producedLitres = processing.Sum(p => p.PalmOilLitres), processingCost = processing.Sum(p => p.ProcessingCost + p.LaborCost + p.FuelCost) }
+        });
     }
 
     private static DateTime GetMondayOfWeek(DateTime date)

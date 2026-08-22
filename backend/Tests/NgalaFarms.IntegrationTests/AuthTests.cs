@@ -20,7 +20,7 @@ public class AuthTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task Login_WithSeedFounder_ReturnsToken()
     {
         var client = _factory.CreateClient();
-        var login = new { email = "founder@ngalafarms.com", password = "ChangeMe#2026" };
+        var login = new { email = "founder@ngalafarms.com", password = "founderngala123" };
         var res = await client.PostAsJsonAsync("/api/auth/login", login);
         res.EnsureSuccessStatusCode();
         var json = await res.Content.ReadAsStringAsync();

@@ -40,15 +40,15 @@ export default function PalmHarvestPage()
         }
     })
 
-    const selectedPlantationIds = (watch('plantationId') || '').split(',').map(value => value.trim()).filter(Boolean)
-    const selectedPlantationId = selectedPlantationIds.length === 1 ? selectedPlantationIds[0] : ''
+    const selectedPlantationId = watch('plantationId')
     const { data: blocks = [] } = useQuery({
         queryKey: ['plantation-blocks', selectedPlantationId],
         enabled: !!selectedPlantationId,
         queryFn: () => apiClient.get(`/plantations/${selectedPlantationId}/blocks`).then(r => r.data || [])
     })
 
-    const invalidateHarvestQueries = () => {
+    const invalidateHarvestQueries = () =>
+    {
         queryClient.invalidateQueries({ queryKey: ['palm-harvests'] })
         queryClient.invalidateQueries({ queryKey: ['all-palm-harvests'] })
         queryClient.invalidateQueries({ queryKey: ['manager-dashboard'] })
@@ -58,30 +58,35 @@ export default function PalmHarvestPage()
         mutationFn: (payload) => editingId
             ? apiClient.put(`/palm-harvests/${editingId}`, payload)
             : apiClient.post('/palm-harvests', payload),
-        onSuccess: () => {
+        onSuccess: () =>
+        {
             invalidateHarvestQueries()
             resetForm()
             showToast(editingId ? 'Palm harvest updated successfully!' : 'Palm harvest recorded successfully!', 'success')
         },
-        onError: (err) => {
+        onError: (err) =>
+        {
             showToast(err.response?.data?.message || (editingId ? 'Failed to update palm harvest' : 'Failed to record palm harvest'), 'error')
         }
     })
 
     const deleteMutation = useMutation({
         mutationFn: (id) => apiClient.delete(`/palm-harvests/${id}`),
-        onSuccess: () => {
+        onSuccess: () =>
+        {
             invalidateHarvestQueries()
             setSelectedHarvest(null)
             setShowDetails(false)
             showToast('Palm harvest deleted successfully!', 'success')
         },
-        onError: (err) => {
+        onError: (err) =>
+        {
             showToast(err.response?.data?.message || 'Failed to delete palm harvest', 'error')
         }
     })
 
-    const resetForm = () => {
+    const resetForm = () =>
+    {
         reset({
             plantationId: '',
             palmBlockId: '',
@@ -95,10 +100,10 @@ export default function PalmHarvestPage()
         setShowModal(false)
     }
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (data) =>
+    {
         const payload = {
-            plantationId: Number(selectedPlantationIds[0]),
-            plantationIds: selectedPlantationIds.map(Number),
+            plantationId: Number(data.plantationId),
             palmBlockId: data.palmBlockId ? Number(data.palmBlockId) : null,
             harvestDate: data.harvestDate,
             numberOfBunches: Number(data.numberOfBunches),
@@ -110,10 +115,11 @@ export default function PalmHarvestPage()
         saveMutation.mutate(payload)
     }
 
-    const openEdit = (harvest) => {
+    const openEdit = (harvest) =>
+    {
         setEditingId(harvest.id)
         setSelectedHarvest(harvest)
-        setValue('plantationId', (harvest.plantationIds?.length ? harvest.plantationIds : [harvest.plantationId]).join(','))
+        setValue('plantationId', String(harvest.plantationId || ''))
         setValue('palmBlockId', harvest.palmBlockId ? String(harvest.palmBlockId) : '')
         setValue('harvestDate', harvest.harvestDate ? harvest.harvestDate.split('T')[0] : new Date().toISOString().split('T')[0])
         setValue('numberOfBunches', harvest.numberOfBunches ?? '')
@@ -149,7 +155,7 @@ export default function PalmHarvestPage()
                         <thead className="border-b border-gray-200">
                             <tr className="text-gray-600 font-semibold">
                                 <th className="text-left py-3 px-4">Harvest ID</th>
-                                <th className="text-left py-3 px-4">Field</th>
+                                <th className="text-left py-3 px-4">Plantation</th>
                                 <th className="text-left py-3 px-4">Date</th>
                                 <th className="text-left py-3 px-4">Bunches</th>
                                 <th className="text-left py-3 px-4">Yield (KG)</th>
@@ -195,27 +201,13 @@ export default function PalmHarvestPage()
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Fields</label>
-                            <div className="grid grid-cols-1 gap-2 rounded-lg border border-gray-300 bg-white p-3 max-h-36 overflow-y-auto">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Plantation</label>
+                            <select {...register('plantationId')} className="input-field">
+                                <option value="">Select plantation</option>
                                 {plantations.map(p => (
-                                    <label key={p.id} className="flex items-center gap-2 text-sm text-gray-700">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedPlantationIds.includes(String(p.id))}
-                                            onChange={(e) => {
-                                                const next = e.target.checked
-                                                    ? [...selectedPlantationIds, String(p.id)]
-                                                    : selectedPlantationIds.filter(id => id !== String(p.id))
-                                                setValue('plantationId', next.join(','), { shouldValidate: true })
-                                                if (next.length !== 1) setValue('palmBlockId', '')
-                                            }}
-                                            className="h-4 w-4 accent-green-600"
-                                        />
-                                        {p.name}
-                                    </label>
+                                    <option key={p.id} value={p.id}>{p.name}</option>
                                 ))}
-                            </div>
-                            {selectedPlantationIds.length > 0 && <p className="text-xs text-gray-500 mt-1">{selectedPlantationIds.length} field(s) selected</p>}
+                            </select>
                             {errors.plantationId && <p className="text-red-600 text-xs mt-1">{errors.plantationId.message}</p>}
                         </div>
 
@@ -227,7 +219,6 @@ export default function PalmHarvestPage()
                                     <option key={block.id} value={block.id}>{block.name}</option>
                                 ))}
                             </select>
-                            {selectedPlantationIds.length > 1 && <p className="text-xs text-gray-500 mt-1">Palm block is available when one field is selected.</p>}
                             {errors.palmBlockId && <p className="text-red-600 text-xs mt-1">{errors.palmBlockId.message}</p>}
                         </div>
 
@@ -283,7 +274,7 @@ export default function PalmHarvestPage()
                                 <p className="font-semibold text-gray-900">{selectedHarvest.harvestId}</p>
                             </div>
                             <div>
-                                <p className="text-gray-500">Field</p>
+                                <p className="text-gray-500">Plantation</p>
                                 <p className="font-semibold text-gray-900">{selectedHarvest.plantationName || 'N/A'}</p>
                             </div>
                             <div>

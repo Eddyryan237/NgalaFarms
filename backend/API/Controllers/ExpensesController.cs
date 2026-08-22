@@ -58,7 +58,7 @@ public class ExpensesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Founder,Manager")]
+    [Authorize(Roles = "Founder")]
     public async Task<IActionResult> Delete(int id)
     {
         var e = await _db.Expenses.FindAsync(id);

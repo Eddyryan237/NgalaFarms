@@ -11,5 +11,4 @@ public class CompanySettings : BaseEntity
     public string? Description { get; set; }
     public string Currency { get; set; } = "XAF";
     public string? Website { get; set; }
-    public bool SeedDataEnabled { get; set; } = true;
 }

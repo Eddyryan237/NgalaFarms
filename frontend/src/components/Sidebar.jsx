@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Leaf, Home, TrendingUp, FileText, BarChart3, Zap, WalletCards, Users, LogOut, X } from 'lucide-react'
+import { Leaf, Home, TrendingUp, FileText, BarChart3, Zap, Users, Wallet, LogOut, X } from 'lucide-react'
 import { clearAuth } from '../lib/auth'
 
 export default function Sidebar({ isFounder, isOpen = true, onClose })
@@ -51,6 +51,7 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
                         {navLink('/founder/dashboard', 'Dashboard', <Home size={18} />)}
                         {navLink('/founder/analytics', 'Analytics', <BarChart3 size={18} />)}
                         {navLink('/founder/reports', 'Weekly Reports', <FileText size={18} />)}
+                        {navLink('/founder/reports/general', 'General Reports', <FileText size={18} />)}
                         {navLink('/founder/audit-logs', 'Audit Logs', <TrendingUp size={18} />)}
                     </>
                 ) : (
@@ -60,11 +61,12 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
                         {navLink('/manager/daily-operations', 'Daily Ops', <TrendingUp size={18} />)}
                         {navLink('/manager/palm-harvest', 'Palm Harvest', <Zap size={18} />)}
                         {navLink('/manager/cattle', 'Cattle', <TrendingUp size={18} />)}
+                        {navLink('/manager/sheep', 'Sheep', <TrendingUp size={18} />)}
                         {navLink('/manager/production', 'Production', <Leaf size={18} />)}
                         {navLink('/manager/sales', 'Sales', <FileText size={18} />)}
                         {navLink('/manager/expenses', 'Expenses', <BarChart3 size={18} />)}
-                        {navLink('/manager/payroll', 'Payroll', <WalletCards size={18} />)}
                         {navLink('/manager/employees', 'Employees', <Users size={18} />)}
+                        {navLink('/manager/payroll', 'Payroll', <Wallet size={18} />)}
                     </>
                 )}
             </nav>

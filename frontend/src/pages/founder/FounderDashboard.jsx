@@ -24,7 +24,7 @@ export default function FounderDashboard()
 
     const { data: inventories = [] } = useQuery({
         queryKey: ['inventories'],
-        queryFn: () => apiClient.get('/inventories').then(r => r.data || []).catch(() => [])
+        queryFn: () => apiClient.get('/inventory').then(r => r.data || []).catch(() => [])
     })
 
     const { data: sales = [], isLoading: salesLoading, refetch: refetchSales } = useQuery({
@@ -47,16 +47,6 @@ export default function FounderDashboard()
         queryFn: () => apiClient.get('/palm-harvests').then(r => r.data || []).catch(() => [])
     })
 
-    const { data: employees = [], refetch: refetchEmployees } = useQuery({
-        queryKey: ['all-employees'],
-        queryFn: () => apiClient.get('/employees').then(r => r.data || []).catch(() => [])
-    })
-
-    const { data: payroll = [], refetch: refetchPayroll } = useQuery({
-        queryKey: ['all-payroll'],
-        queryFn: () => apiClient.get('/payroll').then(r => r.data || []).catch(() => [])
-    })
-
     const handleClearAllData = async () =>
     {
         try
@@ -69,8 +59,6 @@ export default function FounderDashboard()
             refetchCattle()
             refetchDailyOperations()
             refetchPalmHarvests()
-            refetchEmployees()
-            refetchPayroll()
             setShowDeleteConfirm(false)
         } catch (err)
         {
@@ -99,7 +87,7 @@ export default function FounderDashboard()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const todayExpenses = expenses.filter(e => new Date(e.createdAt).setHours(0, 0, 0, 0) === today.getTime())
+    const todayExpenses = expenses.filter(e => new Date(e.date).setHours(0, 0, 0, 0) === today.getTime())
     const todayProduction = production.filter(p => new Date(p.date).setHours(0, 0, 0, 0) === today.getTime())
     const todaySales = sales.filter(s => new Date(s.saleDate).setHours(0, 0, 0, 0) === today.getTime())
     const todayOperations = dailyOperations.filter(o =>
@@ -114,19 +102,14 @@ export default function FounderDashboard()
         return rowDate && rowDate.setHours(0, 0, 0, 0) === today.getTime()
     })
 
-    const paidPayroll = payroll.filter(s => s.status === 'Paid')
-    const todayPayroll = paidPayroll.filter(s => s.paymentDate && new Date(s.paymentDate).setHours(0, 0, 0, 0) === today.getTime())
-    const totalSalaryExpenses = paidPayroll.reduce((sum, s) => sum + (s.amount || 0), 0)
-    const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0) + totalSalaryExpenses
+    const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
     const totalProduction = production.reduce((sum, p) => sum + (p.quantity * p.cost || 0), 0)
     const totalSales = sales.reduce((sum, s) => sum + (s.totalPrice || 0), 0)
 
     // compute current palm oil stock: inventory (if present) + total produced litres - total sold litres
     const inventoryPalm = inventories.find(i => (i.productName || '').toLowerCase().includes('palm oil') || (i.productName || '').toLowerCase().includes('palm'))
     const baseInventory = inventoryPalm ? Number(inventoryPalm.currentQuantity || 0) : 0
-    const producedLitres = production.reduce((s, p) => s + ((p.unit === 'Litres' || (p.item || '').toLowerCase().includes('palm oil')) ? Number(p.quantity || 0) : 0), 0)
-    const soldLitres = sales.reduce((s, p) => s + (Number(p.quantityLitres || 0)), 0)
-    const currentPalmOilStock = Math.max(0, baseInventory + producedLitres - soldLitres)
+    const currentPalmOilStock = baseInventory
 
     const isLoading = expensesLoading || productionLoading || salesLoading || cattleLoading || palmHarvestsLoading
 
@@ -184,18 +167,6 @@ export default function FounderDashboard()
                     <p className="text-xs text-blue-700 mt-2">{production.length} records</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 rounded-lg p-4 md:p-6">
-                    <p className="text-teal-600 text-xs md:text-sm font-medium">Employees</p>
-                    <p className="text-2xl md:text-3xl font-bold text-teal-900 mt-2">{employees.length}</p>
-                    <p className="text-xs text-teal-700 mt-2">Registered in system</p>
-                </div>
-
-                <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg p-4 md:p-6">
-                    <p className="text-red-600 text-xs md:text-sm font-medium">Payroll Expenses</p>
-                    <p className="text-2xl md:text-3xl font-bold text-red-900 mt-2">{formatCurrency(totalSalaryExpenses)}</p>
-                    <p className="text-xs text-red-700 mt-2">{paidPayroll.length} paid records</p>
-                </div>
-
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4 md:p-6">
                     <p className="text-purple-600 text-xs md:text-sm font-medium">Total Sales</p>
                     <p className="text-2xl md:text-3xl font-bold text-purple-900 mt-2">{formatCurrency(totalSales)}</p>
@@ -243,12 +214,6 @@ export default function FounderDashboard()
                             </div>
                         </div>
                     )}
-                </div>
-
-                {/* Today's Payroll */}
-                <div className="card bg-gradient-to-br from-red-50 to-red-100 border border-red-200">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Payroll</h2>
-                    {todayPayroll.length === 0 ? <p className="text-gray-600 text-sm">No salary payments recorded today</p> : <div className="space-y-2">{todayPayroll.map(item => <div key={item.id} className="flex justify-between items-center p-2 bg-white rounded border border-red-200"><div><p className="font-semibold text-gray-900">{item.employeeName}</p><p className="text-xs text-gray-600">{item.receiptNumber}</p></div><p className="font-bold text-red-600">{formatCurrency(item.amount)}</p></div>)}<div className="border-t pt-2 mt-2 font-bold flex justify-between"><span>Today's Total:</span><span className="text-red-600">{formatCurrency(todayPayroll.reduce((sum, item) => sum + (item.amount || 0), 0))}</span></div></div>}
                 </div>
 
                 {/* Today's Production */}
@@ -361,39 +326,9 @@ export default function FounderDashboard()
                             <span className="text-gray-700">Total Expense Records</span>
                             <span className="font-bold">{expenses.length}</span>
                         </div>
-                        <div className="flex justify-between items-center p-2 bg-teal-50 rounded border border-teal-200">
-                            <span className="text-gray-700 font-semibold">Employees</span>
-                            <span className="font-bold text-teal-600">{employees.length}</span>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-red-50 rounded border border-red-200">
-                            <span className="text-gray-700 font-semibold">Payroll Records</span>
-                            <span className="font-bold text-red-600">{payroll.length}</span>
-                        </div>
                         <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
                             <span className="text-gray-700">Total Production Records</span>
                             <span className="font-bold">{production.length}</span>
-                        </div>
-
-                        {/* Employees */}
-                        <div className="card">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4">Employees ({employees.length})</h2>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-xs">
-                                    <thead className="border-b"><tr className="text-gray-600 font-semibold"><th className="text-left py-2">ID</th><th className="text-left py-2">Name</th><th className="text-left py-2">Position</th><th className="text-left py-2">Department</th></tr></thead>
-                                    <tbody>{employees.slice(0, 10).map(employee => <tr key={employee.id} className="border-b"><td className="py-2">{employee.employeeId}</td><td className="py-2">{employee.fullName}</td><td className="py-2">{employee.position}</td><td className="py-2">{employee.department}</td></tr>)}</tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Payroll */}
-                        <div className="card">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4">Payroll ({payroll.length})</h2>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-xs">
-                                    <thead className="border-b"><tr className="text-gray-600 font-semibold"><th className="text-left py-2">Receipt</th><th className="text-left py-2">Employee</th><th className="text-left py-2">Period</th><th className="text-left py-2">Amount</th></tr></thead>
-                                    <tbody>{payroll.slice(0, 10).map(item => <tr key={item.id} className="border-b"><td className="py-2">{item.receiptNumber}</td><td className="py-2">{item.employeeName}</td><td className="py-2">{item.period}</td><td className="py-2 font-semibold">{formatCurrency(item.amount)}</td></tr>)}</tbody>
-                                </table>
-                            </div>
                         </div>
                         <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
                             <span className="text-gray-700">Total Sales Records</span>

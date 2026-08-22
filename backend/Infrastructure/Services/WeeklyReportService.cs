@@ -37,7 +37,7 @@ public class WeeklyReportService : IWeeklyReportService
         var soldCattle = await _db.CattleSales.CountAsync(s => s.SaleDate >= start && s.SaleDate < end);
         var feedExp = await _db.CattleFeedings.Where(f => f.FeedingDate >= start && f.FeedingDate < end).SumAsync(f => f.Cost);
         var vetExp = await _db.CattleHealthRecords.Where(h => !h.IsDeleted && h.RecordDate >= start && h.RecordDate < end).SumAsync(h => h.TreatmentCost);
-        var avgWeight = totalCattle > 0 ? await _db.Cattle.Where(c => !c.IsDeleted && c.Status == CattleStatus.Active).AverageAsync(c => c.CurrentWeightKg) : 0;
+        var avgWeight = totalCattle > 0 ? await _db.Cattle.Where(c => !c.IsDeleted && c.Status == CattleStatus.Active).AverageAsync(c => c.CurrentWeightKg ?? 0) : 0;
         var healthAlerts = await _db.CattleHealthRecords.CountAsync(h => !h.IsDeleted && h.FollowUpDate >= start);
 
         var totalExp = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= start && e.Date < end).SumAsync(e => e.Amount);
@@ -95,16 +95,30 @@ public class WeeklyReportService : IWeeklyReportService
 
     private static WeeklyReportDto MapToDto(WeeklyReport r) => new()
     {
-        Id = r.Id, ReportId = r.ReportId, WeekStart = r.WeekStart, WeekEnd = r.WeekEnd,
-        WeekLabel = r.WeekLabel, PalmFruitHarvestedKg = r.PalmFruitHarvestedKg,
-        PalmOilProducedLitres = r.PalmOilProducedLitres, PalmOilSoldLitres = r.PalmOilSoldLitres,
-        PalmOilRemainingLitres = r.PalmOilRemainingLitres, PalmProductionCost = r.PalmProductionCost,
-        PalmSalesRevenue = r.PalmSalesRevenue, PalmYieldPercentage = r.PalmYieldPercentage,
-        TotalCattle = r.TotalCattle, NewCattle = r.NewCattle, CattleSold = r.CattleSold,
-        FeedingExpenses = r.FeedingExpenses, VeterinaryExpenses = r.VeterinaryExpenses,
-        AverageWeightKg = r.AverageWeightKg, HealthAlerts = r.HealthAlerts,
-        TotalRevenue = r.TotalRevenue, TotalExpenses = r.TotalExpenses,
-        SalaryExpenses = r.SalaryExpenses, NetProfit = r.NetProfit,
-        ProfitMarginPercent = r.ProfitMarginPercent, GeneratedAt = r.GeneratedAt
+        Id = r.Id,
+        ReportId = r.ReportId,
+        WeekStart = r.WeekStart,
+        WeekEnd = r.WeekEnd,
+        WeekLabel = r.WeekLabel,
+        PalmFruitHarvestedKg = r.PalmFruitHarvestedKg,
+        PalmOilProducedLitres = r.PalmOilProducedLitres,
+        PalmOilSoldLitres = r.PalmOilSoldLitres,
+        PalmOilRemainingLitres = r.PalmOilRemainingLitres,
+        PalmProductionCost = r.PalmProductionCost,
+        PalmSalesRevenue = r.PalmSalesRevenue,
+        PalmYieldPercentage = r.PalmYieldPercentage,
+        TotalCattle = r.TotalCattle,
+        NewCattle = r.NewCattle,
+        CattleSold = r.CattleSold,
+        FeedingExpenses = r.FeedingExpenses,
+        VeterinaryExpenses = r.VeterinaryExpenses,
+        AverageWeightKg = r.AverageWeightKg,
+        HealthAlerts = r.HealthAlerts,
+        TotalRevenue = r.TotalRevenue,
+        TotalExpenses = r.TotalExpenses,
+        SalaryExpenses = r.SalaryExpenses,
+        NetProfit = r.NetProfit,
+        ProfitMarginPercent = r.ProfitMarginPercent,
+        GeneratedAt = r.GeneratedAt
     };
 }

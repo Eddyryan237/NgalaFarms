@@ -42,17 +42,27 @@ public class CattleController : ControllerBase
     {
         var c = new Cattle
         {
-            CattleId = await _ids.GenerateCattleIdAsync(), TagNumber = req.TagNumber,
-            Name = req.Name, Sex = req.Sex, Breed = req.Breed,
-            DateOfBirth = req.DateOfBirth, AcquisitionDate = req.AcquisitionDate,
-            AcquisitionCost = req.AcquisitionCost, CurrentWeightKg = req.CurrentWeightKg,
-            ParentInfo = req.ParentInfo, Location = req.Location, Notes = req.Notes
+            CattleId = await _ids.GenerateCattleIdAsync(),
+            TagNumber = null,
+            Name = req.Name,
+            Sex = req.Sex,
+            Category = req.Category,
+            DateOfBirth = req.DateOfBirth,
+            AcquisitionDate = req.AcquisitionDate,
+            AcquisitionCost = req.AcquisitionCost,
+            CurrentWeightKg = req.CurrentWeightKg,
+            ParentInfo = req.ParentInfo,
+            Location = req.Location,
+            Notes = req.Notes,
+            Remarks = req.Remarks
         };
+        c.TagNumber = c.CattleId;
         _db.Cattle.Add(c);
+        await _db.SaveChangesAsync();
 
         // Record initial weight
-        if (req.CurrentWeightKg > 0)
-            _db.CattleWeightRecords.Add(new CattleWeightRecord { CattleId = c.Id, RecordDate = req.AcquisitionDate, WeightKg = req.CurrentWeightKg, Notes = "Initial weight at acquisition" });
+        if (req.CurrentWeightKg is > 0)
+            _db.CattleWeightRecords.Add(new CattleWeightRecord { CattleId = c.Id, RecordDate = req.AcquisitionDate, WeightKg = req.CurrentWeightKg.Value, Notes = "Initial weight at acquisition" });
 
         await _db.SaveChangesAsync();
         var userId = User.FindFirst("userId")?.Value ?? "";
@@ -67,16 +77,16 @@ public class CattleController : ControllerBase
     {
         var c = await _db.Cattle.FindAsync(id);
         if (c == null) return NotFound();
-        c.TagNumber = req.TagNumber; c.Name = req.Name; c.Sex = req.Sex; c.Breed = req.Breed;
+        c.TagNumber = req.TagNumber; c.Name = req.Name; c.Sex = req.Sex; c.Category = req.Category;
         c.DateOfBirth = req.DateOfBirth; c.AcquisitionDate = req.AcquisitionDate;
         c.AcquisitionCost = req.AcquisitionCost; c.CurrentWeightKg = req.CurrentWeightKg;
-        c.ParentInfo = req.ParentInfo; c.Location = req.Location; c.Notes = req.Notes;
+        c.ParentInfo = req.ParentInfo; c.Location = req.Location; c.Notes = req.Notes; c.Remarks = req.Remarks;
         await _db.SaveChangesAsync();
         return NoContent();
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Founder")]
+    [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Delete(int id)
     {
         var c = await _db.Cattle.FindAsync(id);
@@ -197,12 +207,13 @@ public class CattleController : ControllerBase
     public async Task<IActionResult> CreatePurchase([FromBody] CreateCattleRequest req)
     {
         // Create cattle first
-        var c = new Cattle { CattleId = await _ids.GenerateCattleIdAsync(), TagNumber = req.TagNumber, Name = req.Name, Sex = req.Sex, Breed = req.Breed, DateOfBirth = req.DateOfBirth, AcquisitionDate = req.AcquisitionDate, AcquisitionCost = req.AcquisitionCost, CurrentWeightKg = req.CurrentWeightKg, ParentInfo = req.ParentInfo, Location = req.Location, Notes = req.Notes };
+        var c = new Cattle { CattleId = await _ids.GenerateCattleIdAsync(), TagNumber = null, Name = req.Name, Sex = req.Sex, Category = req.Category, DateOfBirth = req.DateOfBirth, AcquisitionDate = req.AcquisitionDate, AcquisitionCost = req.AcquisitionCost, CurrentWeightKg = req.CurrentWeightKg, ParentInfo = req.ParentInfo, Location = req.Location, Notes = req.Notes, Remarks = req.Remarks };
+        c.TagNumber = c.CattleId;
         _db.Cattle.Add(c);
         await _db.SaveChangesAsync();
 
         // Record purchase
-        var p = new CattlePurchase { PurchaseId = await _ids.GeneratePurchaseIdAsync(), CattleId = c.Id, SupplierName = "Unknown", PurchaseDate = req.AcquisitionDate, PurchasePrice = req.AcquisitionCost, WeightAtPurchaseKg = req.CurrentWeightKg };
+        var p = new CattlePurchase { PurchaseId = await _ids.GeneratePurchaseIdAsync(), CattleId = c.Id, SupplierName = "Unknown", PurchaseDate = req.AcquisitionDate, PurchasePrice = req.AcquisitionCost, WeightAtPurchaseKg = req.CurrentWeightKg ?? 0 };
         _db.CattlePurchases.Add(p);
 
         // Record as expense
@@ -242,11 +253,21 @@ public class CattleController : ControllerBase
 
     private static CattleDto Map(Cattle c) => new()
     {
-        Id = c.Id, CattleId = c.CattleId, TagNumber = c.TagNumber, Name = c.Name,
-        Sex = c.Sex, Breed = c.Breed, DateOfBirth = c.DateOfBirth,
-        AcquisitionDate = c.AcquisitionDate, AcquisitionCost = c.AcquisitionCost,
-        Status = c.Status, CurrentWeightKg = c.CurrentWeightKg, ParentInfo = c.ParentInfo,
-        Location = c.Location, Notes = c.Notes,
+        Id = c.Id,
+        CattleId = c.CattleId,
+        TagNumber = c.TagNumber,
+        Name = c.Name,
+        Sex = c.Sex,
+        Category = c.Category,
+        DateOfBirth = c.DateOfBirth,
+        AcquisitionDate = c.AcquisitionDate,
+        AcquisitionCost = c.AcquisitionCost,
+        Status = c.Status,
+        CurrentWeightKg = c.CurrentWeightKg,
+        ParentInfo = c.ParentInfo,
+        Location = c.Location,
+        Notes = c.Notes,
+        Remarks = c.Remarks,
         AgeMonths = (int)((DateTime.UtcNow - c.DateOfBirth).TotalDays / 30.44),
         CreatedAt = c.CreatedAt
     };

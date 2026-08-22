@@ -15,13 +15,16 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Database: default to SQLite for development. To enable PostgreSQL later,
-        // install Npgsql.EntityFrameworkCore.PostgreSQL and replace this registration.
-        // Database provider: default to SQLite for local development.
-        // To switch to PostgreSQL, install the Npgsql EF Core provider and set DatabaseProvider=Postgres in configuration.
         services.AddDbContext<NgalaFarmsDbContext>(options =>
         {
-            options.UseSqlite(configuration.GetConnectionString("DefaultConnection") ?? "Data Source=agriculture.db");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var provider = configuration["DatabaseProvider"] ?? "Postgres";
+
+            if (provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase))
+                options.UseSqlite(connectionString ?? "Data Source=agriculture.db");
+            else
+                options.UseNpgsql(connectionString ?? "Host=localhost;Port=5432;Database=ngala_farms;Username=ngala;Password=ngala_dev_password");
+
             options.ConfigureWarnings(w =>
                 w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });

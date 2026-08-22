@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { FileText, Download, TrendingUp, Calendar } from 'lucide-react'
 import apiClient from '../../lib/api'
-import { exportReport } from '../../lib/reportExport'
 
 export default function WeeklyReportsPage()
 {
@@ -92,7 +91,7 @@ export default function WeeklyReportsPage()
                                     </div>
 
                                     <div className="flex gap-2">
-                                        <button className="btn-secondary flex items-center gap-2" onClick={(e) => { e.preventDefault(); e.stopPropagation(); exportReport(report, `weekly-report-${report.weekStart?.split('T')[0] || report.id}`) }}>
+                                        <button className="btn-secondary flex items-center gap-2" onClick={(e) => { e.preventDefault(); }}>
                                             <Download size={16} />
                                             Export
                                         </button>
