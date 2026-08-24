@@ -137,7 +137,7 @@ public class SalesController : ControllerBase
     {
         var s = await _db.Sales.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         if (s == null) return NotFound();
-        s.IsDeleted = true; await _db.SaveChangesAsync();
+        _db.Sales.Remove(s); await _db.SaveChangesAsync();
         return NoContent();
     }
 

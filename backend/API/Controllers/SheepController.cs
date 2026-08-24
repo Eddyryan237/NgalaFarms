@@ -50,7 +50,7 @@ public class SheepController : ControllerBase
     {
         var sheep = await _db.Sheep.FindAsync(id);
         if (sheep == null) return NotFound();
-        sheep.IsDeleted = true; await _db.SaveChangesAsync(); return NoContent();
+        _db.Sheep.Remove(sheep); await _db.SaveChangesAsync(); return NoContent();
     }
 
     private static SheepDto Map(Sheep s) => new() { Id = s.Id, SheepId = s.SheepId, TagNumber = s.TagNumber, Sex = s.Sex, DateOfBirth = s.DateOfBirth, AcquisitionDate = s.AcquisitionDate, AcquisitionCost = s.AcquisitionCost, CurrentWeightKg = s.CurrentWeightKg, Location = s.Location, Remarks = s.Remarks };

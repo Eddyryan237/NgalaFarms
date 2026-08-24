@@ -58,7 +58,7 @@ public class CustomersController : ControllerBase
     {
         var c = await _db.Customers.FindAsync(id);
         if (c == null) return NotFound();
-        c.IsDeleted = true; await _db.SaveChangesAsync();
+        _db.Customers.Remove(c); await _db.SaveChangesAsync();
         return NoContent();
     }
 

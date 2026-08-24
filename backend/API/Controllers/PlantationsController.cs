@@ -72,7 +72,7 @@ public class PlantationsController : ControllerBase
     {
         var p = await _db.Plantations.FindAsync(id);
         if (p == null) return NotFound();
-        p.IsDeleted = true;
+        _db.Plantations.Remove(p);
         await _db.SaveChangesAsync();
         return NoContent();
     }

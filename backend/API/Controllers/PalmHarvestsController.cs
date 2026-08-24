@@ -124,7 +124,7 @@ public class PalmHarvestsController : ControllerBase
     {
         var h = await _db.PalmHarvests.FindAsync(id);
         if (h == null) return NotFound();
-        h.IsDeleted = true; await _db.SaveChangesAsync();
+        _db.PalmHarvests.Remove(h); await _db.SaveChangesAsync();
         return NoContent();
     }
 

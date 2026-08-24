@@ -91,7 +91,7 @@ public class CattleController : ControllerBase
     {
         var c = await _db.Cattle.FindAsync(id);
         if (c == null) return NotFound();
-        c.IsDeleted = true; await _db.SaveChangesAsync();
+        _db.Cattle.Remove(c); await _db.SaveChangesAsync();
         return NoContent();
     }
 

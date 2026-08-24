@@ -34,7 +34,7 @@ export default function EmployeesPage()
 		try { await apiClient.delete(`/employees/${employee.id}`); addToast('Employee deleted successfully', 'success'); refetch() }
 		catch (err) { addToast(err.response?.data?.message || 'Failed to delete employee', 'error') }
 	}
-	const filteredEmployees = employees.filter(employee => `${employee.fullName} ${employee.employeeId} ${employee.position} ${employee.department}`.toLowerCase().includes(search.toLowerCase()))
+	const filteredEmployees = employees.filter(employee => `${employee.fullName} ${employee.employeeId} ${employee.position} ${employee.department}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => a.employeeId.localeCompare(b.employeeId, undefined, { numeric: true }))
 	return (
 		<div className="space-y-8">
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"><div><h1 className="text-3xl font-bold text-gray-900">Employees</h1><p className="text-gray-600 mt-1">Add and manage farm employee records.</p></div><button onClick={() => { setEditingId(null); resetEmployeeForm(); setShowForm(!showForm) }} className="btn-primary flex items-center justify-center gap-2"><Plus size={18} /> {showForm ? 'Close form' : 'Add employee'}</button></div>

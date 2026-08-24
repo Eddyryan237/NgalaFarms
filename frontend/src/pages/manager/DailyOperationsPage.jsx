@@ -31,7 +31,7 @@ export default function DailyOperationsPage()
         operationType: [],
         description: '',
         date: new Date().toISOString().split('T')[0],
-        plantationId: '',
+        plantationId: [],
         palmBlockId: '',
         performedBy: ''
     })
@@ -70,7 +70,7 @@ export default function DailyOperationsPage()
                 operationType: [],
                 description: '',
                 date: new Date().toISOString().split('T')[0],
-                plantationId: '',
+                plantationId: [],
                 palmBlockId: '',
                 performedBy: ''
             })
@@ -108,7 +108,7 @@ export default function DailyOperationsPage()
         const payload = {
             ...formData,
             operationType: formData.operationType.join(', '),
-            plantationId: formData.plantationId || null,
+            plantationId: formData.plantationId.join(','),
             palmBlockId: formData.palmBlockId || null,
             performedBy: formData.performedBy || 'Manager'
         }
@@ -124,7 +124,7 @@ export default function DailyOperationsPage()
             operationType: op.operationType ? op.operationType.split(',').map(type => type.trim()).filter(Boolean) : [],
             description: op.description || '',
             date: op.date ? new Date(op.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            plantationId: op.plantationId || '',
+            plantationId: op.plantationId ? op.plantationId.split(',').map(id => id.trim()).filter(Boolean) : [],
             palmBlockId: op.palmBlockId || '',
             performedBy: op.performedBy || ''
         })
@@ -139,7 +139,7 @@ export default function DailyOperationsPage()
             operationType: [],
             description: '',
             date: new Date().toISOString().split('T')[0],
-            plantationId: '',
+            plantationId: [],
             palmBlockId: '',
             performedBy: ''
         })
@@ -243,11 +243,11 @@ export default function DailyOperationsPage()
                                     Plantation (Optional)
                                 </label>
                                 <select
-                                    value={formData.plantationId || ''}
-                                    onChange={(e) => setFormData({ ...formData, plantationId: e.target.value || '' })}
+                                    multiple
+                                    value={formData.plantationId}
+                                    onChange={(e) => setFormData({ ...formData, plantationId: Array.from(e.target.selectedOptions, option => option.value) })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                 >
-                                    <option value="">No plantation selected</option>
                                     {plantations.map(p => (
                                         <option key={p.id} value={p.id}>{p.name}</option>
                                     ))}

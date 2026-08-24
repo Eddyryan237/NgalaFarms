@@ -23,7 +23,7 @@ public class EmployeesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var list = await _db.Employees.OrderBy(e => e.FullName).ToListAsync();
+        var list = await _db.Employees.OrderBy(e => e.EmployeeId).ToListAsync();
         return Ok(list.Select(Map));
     }
 
@@ -83,7 +83,7 @@ public class EmployeesController : ControllerBase
     {
         var e = await _db.Employees.FindAsync(id);
         if (e == null) return NotFound();
-        e.IsDeleted = true; await _db.SaveChangesAsync();
+        _db.Employees.Remove(e); await _db.SaveChangesAsync();
         return NoContent();
     }
 
@@ -154,6 +154,19 @@ public class PayrollController : ControllerBase
         {
             _db.Expenses.Add(CreateSalaryExpense(s, emp));
         }
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Founder")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var salary = await _db.Salaries.FindAsync(id);
+        if (salary == null) return NotFound();
+        var expense = await _db.Expenses.FirstOrDefaultAsync(e => e.SalaryId == id);
+        if (expense != null) _db.Expenses.Remove(expense);
+        _db.Salaries.Remove(salary);
         await _db.SaveChangesAsync();
         return NoContent();
     }

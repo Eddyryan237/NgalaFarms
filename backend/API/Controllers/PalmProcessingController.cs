@@ -112,7 +112,7 @@ public class PalmProcessingController : ControllerBase
     {
         var p = await _db.PalmProcessings.FindAsync(id);
         if (p == null) return NotFound();
-        p.IsDeleted = true; await _db.SaveChangesAsync();
+        _db.PalmProcessings.Remove(p); await _db.SaveChangesAsync();
         return NoContent();
     }
 

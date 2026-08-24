@@ -6,7 +6,6 @@ import apiClient from '../../lib/api'
 
 export default function FounderDashboard()
 {
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showDetails, setShowDetails] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null)
     const [selectedItemType, setSelectedItemType] = useState(null)
@@ -47,24 +46,11 @@ export default function FounderDashboard()
         queryFn: () => apiClient.get('/palm-harvests').then(r => r.data || []).catch(() => [])
     })
 
-    const handleClearAllData = async () =>
-    {
-        try
-        {
-            await apiClient.post('/admin/clear-data')
-            alert('✅ All data cleared successfully. System reset for testing.')
-            refetchExpenses()
-            refetchProduction()
-            refetchSales()
-            refetchCattle()
-            refetchDailyOperations()
-            refetchPalmHarvests()
-            setShowDeleteConfirm(false)
-        } catch (err)
-        {
-            alert('Error clearing data: ' + err.response?.data?.message)
-        }
-    }
+    const { data: dashboard = {} } = useQuery({
+        queryKey: ['founder-dashboard'],
+        queryFn: () => apiClient.get('/dashboard/founder').then(r => r.data)
+    })
+
 
     const exportToCSV = (data, filename) =>
     {
@@ -102,14 +88,13 @@ export default function FounderDashboard()
         return rowDate && rowDate.setHours(0, 0, 0, 0) === today.getTime()
     })
 
-    const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+    const totalExpenses = Number(dashboard.financial?.totalExpenses ?? 0)
     const totalProduction = production.reduce((sum, p) => sum + (p.quantity * p.cost || 0), 0)
     const totalSales = sales.reduce((sum, s) => sum + (s.totalPrice || 0), 0)
 
     // compute current palm oil stock: inventory (if present) + total produced litres - total sold litres
     const inventoryPalm = inventories.find(i => (i.productName || '').toLowerCase().includes('palm oil') || (i.productName || '').toLowerCase().includes('palm'))
-    const baseInventory = inventoryPalm ? Number(inventoryPalm.currentQuantity || 0) : 0
-    const currentPalmOilStock = baseInventory
+    const currentPalmOilStock = Number(dashboard.palmOil?.currentStockLitres ?? 0)
 
     const isLoading = expensesLoading || productionLoading || salesLoading || cattleLoading || palmHarvestsLoading
 
@@ -158,7 +143,7 @@ export default function FounderDashboard()
                 <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-4 md:p-6">
                     <p className="text-green-600 text-xs md:text-sm font-medium">Total Expenses</p>
                     <p className="text-2xl md:text-3xl font-bold text-green-900 mt-2">{formatCurrency(totalExpenses)}</p>
-                    <p className="text-xs text-green-700 mt-2">{expenses.length} records</p>
+                    <p className="text-xs text-green-700 mt-2">{expenses.length} records including payroll</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4 md:p-6">
@@ -177,6 +162,12 @@ export default function FounderDashboard()
                     <p className="text-amber-600 text-xs md:text-sm font-medium">Active Cattle</p>
                     <p className="text-2xl md:text-3xl font-bold text-amber-900 mt-2">{cattle.length}</p>
                     <p className="text-xs text-amber-700 mt-2">Total in system</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 rounded-lg p-4 md:p-6">
+                    <p className="text-teal-600 text-xs md:text-sm font-medium">Total Employees</p>
+                    <p className="text-2xl md:text-3xl font-bold text-teal-900 mt-2">{dashboard.company?.totalEmployees ?? 0}</p>
+                    <p className="text-xs text-teal-700 mt-2">Active employees</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4 md:p-6">
@@ -386,17 +377,6 @@ export default function FounderDashboard()
                         </button>
                     </div>
 
-                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
-                        <p className="text-red-700 font-semibold mb-3">⚠️ Danger Zone - Clear All Data</p>
-                        <p className="text-red-600 text-sm mb-4">This will permanently delete all records for accurate testing. This action cannot be undone.</p>
-                        <button
-                            onClick={() => setShowDeleteConfirm(true)}
-                            className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded hover:bg-red-700 font-semibold w-full"
-                        >
-                            <Trash2 size={18} />
-                            Clear All Data for Testing
-                        </button>
-                    </div>
                 </div>
 
                 {/* Detailed Data View */}
@@ -583,36 +563,6 @@ export default function FounderDashboard()
                     </div>
                 )}
 
-                {/* Delete Confirmation Modal */}
-                {showDeleteConfirm && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 max-w-md">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Confirm Data Clearance</h2>
-                            <p className="text-gray-600 mb-4">
-                                Are you sure you want to delete all data? This action is <strong>irreversible</strong>.
-                            </p>
-                            <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
-                                <p className="text-red-700 text-sm">
-                                    ⚠️ All expenses, production records, sales, and other data will be permanently deleted.
-                                </p>
-                            </div>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowDeleteConfirm(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 font-semibold"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleClearAllData}
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-semibold"
-                                >
-                                    Yes, Clear All Data
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     )

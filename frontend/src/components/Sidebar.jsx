@@ -51,6 +51,7 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
                         {navLink('/founder/dashboard', 'Dashboard', <Home size={18} />)}
                         {navLink('/founder/analytics', 'Analytics', <BarChart3 size={18} />)}
                         {navLink('/founder/reports', 'Weekly Reports', <FileText size={18} />)}
+                        {navLink('/founder/reports/general', 'General Reports', <FileText size={18} />)}
                         {navLink('/founder/audit-logs', 'Audit Logs', <TrendingUp size={18} />)}
                     </>
                 ) : (

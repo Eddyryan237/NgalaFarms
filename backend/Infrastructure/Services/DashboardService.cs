@@ -24,7 +24,7 @@ public class DashboardService : IDashboardService
         var totalRevenue = await _db.Sales.Where(s => !s.IsDeleted).SumAsync(s => s.TotalPrice)
                          + await _db.CattleSales.SumAsync(s => s.SalePrice);
         var totalExpenses = await _db.Expenses.Where(e => !e.IsDeleted).SumAsync(e => e.Amount)
-                          + await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid).SumAsync(s => s.Amount);
+                 + await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid && !_db.Expenses.Any(e => e.SalaryId == s.Id && !e.IsDeleted)).SumAsync(s => s.Amount);
         var netProfit = totalRevenue - totalExpenses;
 
         // Monthly trend – last 6 months
@@ -37,15 +37,17 @@ public class DashboardService : IDashboardService
             var rev = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= mStart && s.SaleDate < mEnd).SumAsync(s => s.TotalPrice)
                     + await _db.CattleSales.Where(s => s.SaleDate >= mStart && s.SaleDate < mEnd).SumAsync(s => s.SalePrice);
             var exp = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= mStart && e.Date < mEnd).SumAsync(e => e.Amount)
-                    + await _db.Salaries.Where(s => s.PeriodStart >= mStart && s.PeriodStart < mEnd && s.Status == SalaryStatus.Paid).SumAsync(s => s.Amount);
+                + await _db.Salaries.Where(s => s.PeriodStart >= mStart && s.PeriodStart < mEnd && s.Status == SalaryStatus.Paid && !_db.Expenses.Any(e => e.SalaryId == s.Id && !e.IsDeleted)).SumAsync(s => s.Amount);
             months.Add(new MonthlyRevenueDto { Month = monthDate.ToString("MMM yyyy"), Revenue = rev, Expenses = exp, Profit = rev - exp });
         }
 
-        var palmStock = await _db.Inventories.Where(i => i.ProductName == "Palm Oil").SumAsync(i => i.CurrentQuantity);
+        var palmOilProduced = await _db.PalmProcessings.SumAsync(p => p.PalmOilLitres);
+        var palmOilSold = await _db.Sales.Where(s => !s.IsDeleted && s.Product.ToLower().Contains("palm")).SumAsync(s => s.QuantityLitres);
+        var palmStock = Math.Max(0, palmOilProduced - palmOilSold);
         var palmRevenue = await _db.Sales.Where(s => !s.IsDeleted).SumAsync(s => s.TotalPrice);
         var palmExpenses = await _db.Expenses.Where(e => !e.IsDeleted && e.Division == ExpenseDivision.PalmOil).SumAsync(e => e.Amount);
         var palmFruitKg = await _db.PalmHarvests.Where(h => !h.IsDeleted).SumAsync(h => h.TotalWeightKg);
-        var palmOilLitres = await _db.PalmProcessings.SumAsync(p => p.PalmOilLitres);
+        var palmOilLitres = palmOilProduced;
         var avgYield = palmFruitKg > 0 ? (palmOilLitres / palmFruitKg) * 100 : 0;
 
         var activeCattle = await _db.Cattle.CountAsync(c => !c.IsDeleted && c.Status == CattleStatus.Active);
@@ -83,12 +85,15 @@ public class DashboardService : IDashboardService
 
         var todayHarvest = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= today && h.HarvestDate < tomorrow).SumAsync(h => h.TotalWeightKg);
         var todayProduction = await _db.PalmProcessings.Where(p => p.ProcessingDate >= today && p.ProcessingDate < tomorrow).SumAsync(p => p.PalmOilLitres);
-        var palmStock = await _db.Inventories.Where(i => i.ProductName == "Palm Oil").SumAsync(i => i.CurrentQuantity);
+        var palmOilProduced = await _db.PalmProcessings.SumAsync(p => p.PalmOilLitres);
+        var palmOilSold = await _db.Sales.Where(s => !s.IsDeleted && s.Product.ToLower().Contains("palm")).SumAsync(s => s.QuantityLitres);
+        var palmStock = Math.Max(0, palmOilProduced - palmOilSold);
         var activeCattle = await _db.Cattle.CountAsync(c => !c.IsDeleted && c.Status == CattleStatus.Active);
         var healthAlerts = await _db.CattleHealthRecords.CountAsync(h => !h.IsDeleted && h.FollowUpDate >= now);
         var todaySales = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= today && s.SaleDate < tomorrow).SumAsync(s => s.TotalPrice);
         var todayExpenses = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= today && e.Date < tomorrow).SumAsync(e => e.Amount);
         var activeEmp = await _db.Employees.CountAsync(e => !e.IsDeleted && e.Status == EmployeeStatus.Active);
+        var sheep = await _db.Sheep.Where(s => !s.IsDeleted).ToListAsync();
 
         return new ManagerDashboardDto
         {
@@ -100,6 +105,7 @@ public class DashboardService : IDashboardService
             TodaysSalesRevenue = todaySales,
             TodaysExpenses = todayExpenses,
             ActiveEmployees = activeEmp
+            ,Sheep = new SheepKpiDto { TotalSheep = sheep.Count, MaleSheep = sheep.Count(s => s.Sex == "Male"), FemaleSheep = sheep.Count(s => s.Sex == "Female"), TotalWeightKg = sheep.Sum(s => s.CurrentWeightKg ?? 0) }
         };
     }
 }

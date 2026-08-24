@@ -10,44 +10,7 @@ namespace NgalaFarms.API.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly NgalaFarmsDbContext _db;
-    private readonly ILogger<AdminController> _logger;
-
-    public AdminController(NgalaFarmsDbContext db, ILogger<AdminController> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
-
-    [HttpPost("clear-data")]
-    public async Task<IActionResult> ClearAllData()
-    {
-        try
-        {
-            // Delete in order of dependencies
-            _db.CattleVaccinations.RemoveRange(_db.CattleVaccinations);
-            _db.CattleHealthRecords.RemoveRange(_db.CattleHealthRecords);
-            _db.CattleWeightRecords.RemoveRange(_db.CattleWeightRecords);
-            _db.Expenses.RemoveRange(_db.Expenses);
-            _db.Sales.RemoveRange(_db.Sales);
-            _db.Productions.RemoveRange(_db.Productions);
-            _db.PalmProcessings.RemoveRange(_db.PalmProcessings);
-            _db.PalmHarvests.RemoveRange(_db.PalmHarvests);
-            _db.Notifications.RemoveRange(_db.Notifications);
-            _db.Salaries.RemoveRange(_db.Salaries);
-            _db.Inventories.RemoveRange(_db.Inventories);
-            _db.StockTransactions.RemoveRange(_db.StockTransactions);
-
-            await _db.SaveChangesAsync();
-
-            _logger.LogInformation("All data cleared by founder for testing at {Time}", DateTime.UtcNow);
-            return Ok(new { message = "All data cleared successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error clearing data");
-            return BadRequest(new { message = "Error clearing data: " + ex.Message });
-        }
-    }
+    public AdminController(NgalaFarmsDbContext db) => _db = db;
 
     [HttpPost("delete-record")]
     public async Task<IActionResult> DeleteRecord([FromBody] DeleteRecordRequest req)

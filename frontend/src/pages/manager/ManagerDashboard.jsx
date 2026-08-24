@@ -34,12 +34,6 @@ export default function ManagerDashboard()
         select: (data) => (Array.isArray(data) ? data.slice(0, 5) : [])
     })
 
-    // fetch all sales to compute stock adjustments
-    const { data: allSales = [] } = useQuery({
-        queryKey: ['sales-all'],
-        queryFn: () => apiClient.get('/sales').then(r => r.data || [])
-    })
-
     const dashboard = data || {}
 
     return (
@@ -54,20 +48,22 @@ export default function ManagerDashboard()
                 </div>
 
                 <div className="card">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Sheep Status</h3>
+                    <div className="space-y-3">
+                        <div className="flex justify-between"><span className="text-gray-600">Total Sheep</span><span className="font-bold text-lg">{dashboard.sheep?.totalSheep ?? 0}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-600">Male / Female</span><span className="font-bold">{dashboard.sheep?.maleSheep ?? 0} / {dashboard.sheep?.femaleSheep ?? 0}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-600">Total Weight</span><span className="font-bold">{Number(dashboard.sheep?.totalWeightKg ?? 0).toLocaleString()} KG</span></div>
+                    </div>
+                </div>
+
+                <div className="card">
                     <p className="text-gray-600 text-sm">Today's Production</p>
                     <p className="text-3xl font-bold text-earth-600 mt-2">{dashboard.todaysPalmOilProductionLitres?.toLocaleString()} L</p>
                 </div>
 
                 <div className="card">
                     <p className="text-gray-600 text-sm">Current Stock</p>
-                    {
-                        (() => {
-                            const baseStock = Number(dashboard.currentPalmOilStockLitres) || 0
-                            const soldLitres = Array.isArray(allSales) ? allSales.reduce((s, it) => s + (Number(it.quantityLitres) || 0), 0) : 0
-                            const displayed = Math.max(0, baseStock - soldLitres)
-                            return <p className="text-3xl font-bold text-blue-600 mt-2">{displayed.toLocaleString()} L</p>
-                        })()
-                    }
+                    <p className="text-3xl font-bold text-blue-600 mt-2">{Number(dashboard.currentPalmOilStockLitres || 0).toLocaleString()} L</p>
                 </div>
 
                 <div className="card flex items-center justify-between">

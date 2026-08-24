@@ -63,7 +63,7 @@ public class ExpensesController : ControllerBase
     {
         var e = await _db.Expenses.FindAsync(id);
         if (e == null) return NotFound();
-        e.IsDeleted = true; await _db.SaveChangesAsync();
+        _db.Expenses.Remove(e); await _db.SaveChangesAsync();
         return NoContent();
     }
 

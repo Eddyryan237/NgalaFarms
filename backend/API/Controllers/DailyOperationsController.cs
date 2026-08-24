@@ -27,6 +27,8 @@ public class DailyOperationsController : ControllerBase
     public async Task<IActionResult> Create([FromBody] DailyOperation op)
     {
         if (op == null) return BadRequest();
+        if (string.IsNullOrWhiteSpace(op.OperationType) || string.IsNullOrWhiteSpace(op.PlantationId))
+            return BadRequest(new { message = "At least one operation type and plantation are required." });
         op.PerformedBy = User?.Identity?.Name ?? op.PerformedBy;
         _db.DailyOperations.Add(op);
         await _db.SaveChangesAsync();
@@ -38,6 +40,8 @@ public class DailyOperationsController : ControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] DailyOperation updatedOp)
     {
         if (updatedOp == null) return BadRequest();
+        if (string.IsNullOrWhiteSpace(updatedOp.OperationType) || string.IsNullOrWhiteSpace(updatedOp.PlantationId))
+            return BadRequest(new { message = "At least one operation type and plantation are required." });
 
         var op = await _db.DailyOperations.FindAsync(id);
         if (op == null) return NotFound();
@@ -61,7 +65,7 @@ public class DailyOperationsController : ControllerBase
     {
         var op = await _db.DailyOperations.FindAsync(id);
         if (op == null) return NotFound();
-        
+
         _db.DailyOperations.Remove(op);
         await _db.SaveChangesAsync();
         return Ok(new { message = "Operation deleted successfully" });

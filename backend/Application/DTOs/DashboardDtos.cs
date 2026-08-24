@@ -74,4 +74,5 @@ public class ManagerDashboardDto
     public decimal TodaysSalesRevenue { get; set; }
     public decimal TodaysExpenses { get; set; }
     public int ActiveEmployees { get; set; }
+    public SheepKpiDto Sheep { get; set; } = new();
 }

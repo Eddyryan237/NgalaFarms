@@ -48,7 +48,7 @@ public class NotificationsController : ControllerBase
     {
         var n = await _db.Notifications.FindAsync(id);
         if (n == null) return NotFound();
-        n.IsDeleted = true;
+        _db.Notifications.Remove(n);
         await _db.SaveChangesAsync();
         return NoContent();
     }
