@@ -69,8 +69,8 @@ export default function ManagerDashboard()
                 <div className="card flex items-center justify-between">
                     <div>
                         <p className="text-gray-600 text-sm">Current Sales Quantity</p>
-                        <p className="text-2xl font-bold text-green-600 mt-2">{Number(dashboard.totalProductionQuantity || 0).toLocaleString()} L</p>
-                        <p className="text-xs text-gray-500 mt-1">Sum of all production quantity</p>
+                        <p className="text-2xl font-bold text-green-600 mt-2">{Number(dashboard.totalSalesQuantity || 0).toLocaleString()} L</p>
+                        <p className="text-xs text-gray-500 mt-1">Sum of all sales quantity</p>
                     </div>
                 </div>
             </div>

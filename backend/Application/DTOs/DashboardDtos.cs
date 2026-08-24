@@ -73,6 +73,7 @@ public class ManagerDashboardDto
     public int CattleHealthAlerts { get; set; }
     public decimal TodaysSalesRevenue { get; set; }
     public decimal TotalProductionQuantity { get; set; }
+    public decimal TotalSalesQuantity { get; set; }
     public decimal TodaysExpenses { get; set; }
     public int ActiveEmployees { get; set; }
     public SheepKpiDto Sheep { get; set; } = new();
