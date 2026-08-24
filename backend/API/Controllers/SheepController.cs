@@ -25,7 +25,7 @@ public class SheepController : ControllerBase
     public async Task<IActionResult> Create(CreateSheepRequest req)
     {
         if (req.Sex is not ("Male" or "Female")) return BadRequest(new { message = "Sheep sex must be Male or Female." });
-        var sheep = new Sheep { SheepId = await _ids.GenerateSheepIdAsync(), TagNumber = null, Sex = req.Sex, DateOfBirth = req.DateOfBirth, AcquisitionDate = req.AcquisitionDate, AcquisitionCost = req.AcquisitionCost, CurrentWeightKg = req.CurrentWeightKg, Location = req.Location, Remarks = req.Remarks };
+        var sheep = new Sheep { SheepId = await _ids.GenerateSheepIdAsync(), TagNumber = null, Sex = req.Sex, Status = req.Status, DateOfBirth = req.DateOfBirth, AcquisitionDate = req.AcquisitionDate, AcquisitionCost = req.AcquisitionCost, CurrentWeightKg = req.CurrentWeightKg, Location = req.Location, Remarks = req.Remarks };
         sheep.TagNumber = sheep.SheepId;
         _db.Sheep.Add(sheep);
         await _db.SaveChangesAsync();
@@ -39,7 +39,7 @@ public class SheepController : ControllerBase
         var sheep = await _db.Sheep.FindAsync(id);
         if (sheep == null) return NotFound();
         if (req.Sex is not ("Male" or "Female")) return BadRequest(new { message = "Sheep sex must be Male or Female." });
-        sheep.Sex = req.Sex; sheep.DateOfBirth = req.DateOfBirth; sheep.AcquisitionDate = req.AcquisitionDate; sheep.AcquisitionCost = req.AcquisitionCost; sheep.CurrentWeightKg = req.CurrentWeightKg; sheep.Location = req.Location; sheep.Remarks = req.Remarks;
+        sheep.Sex = req.Sex; sheep.Status = req.Status; sheep.DateOfBirth = req.DateOfBirth; sheep.AcquisitionDate = req.AcquisitionDate; sheep.AcquisitionCost = req.AcquisitionCost; sheep.CurrentWeightKg = req.CurrentWeightKg; sheep.Location = req.Location; sheep.Remarks = req.Remarks;
         await _db.SaveChangesAsync();
         return Ok(Map(sheep));
     }
@@ -53,5 +53,5 @@ public class SheepController : ControllerBase
         _db.Sheep.Remove(sheep); await _db.SaveChangesAsync(); return NoContent();
     }
 
-    private static SheepDto Map(Sheep s) => new() { Id = s.Id, SheepId = s.SheepId, TagNumber = s.TagNumber, Sex = s.Sex, DateOfBirth = s.DateOfBirth, AcquisitionDate = s.AcquisitionDate, AcquisitionCost = s.AcquisitionCost, CurrentWeightKg = s.CurrentWeightKg, Location = s.Location, Remarks = s.Remarks };
+    private static SheepDto Map(Sheep s) => new() { Id = s.Id, SheepId = s.SheepId, TagNumber = s.TagNumber, Sex = s.Sex, Status = s.Status, DateOfBirth = s.DateOfBirth, AcquisitionDate = s.AcquisitionDate, AcquisitionCost = s.AcquisitionCost, CurrentWeightKg = s.CurrentWeightKg, Location = s.Location, Remarks = s.Remarks };
 }

@@ -164,6 +164,12 @@ export default function FounderDashboard()
                     <p className="text-xs text-amber-700 mt-2">Total in system</p>
                 </div>
 
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4 md:p-6">
+                    <p className="text-orange-600 text-xs md:text-sm font-medium">Sheep Status</p>
+                    <p className="text-2xl md:text-3xl font-bold text-orange-900 mt-2">{dashboard.sheep?.totalSheep ?? 0}</p>
+                    <p className="text-xs text-orange-700 mt-2">{dashboard.sheep?.maleSheep ?? 0} male / {dashboard.sheep?.femaleSheep ?? 0} female • {Number(dashboard.sheep?.totalWeightKg ?? 0).toLocaleString()} KG</p>
+                </div>
+
                 <div className="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 rounded-lg p-4 md:p-6">
                     <p className="text-teal-600 text-xs md:text-sm font-medium">Total Employees</p>
                     <p className="text-2xl md:text-3xl font-bold text-teal-900 mt-2">{dashboard.company?.totalEmployees ?? 0}</p>

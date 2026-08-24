@@ -19,14 +19,21 @@ export default function CattleListPage()
     })
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm({
-        resolver: zodResolver(cattleSchema)
+        resolver: zodResolver(cattleSchema),
+        defaultValues: { acquisitionDate: new Date().toISOString().slice(0, 10), acquisitionCost: 0 }
     })
 
     const { submit, loading, error } = useFormHandler(['cattle'])
 
     const onSubmit = async (data) =>
     {
-        const success = await submit('/cattle', data)
+        const success = await submit('/cattle', {
+            ...data,
+            tagNumber: data.tagNumber || null,
+            acquisitionDate: data.acquisitionDate,
+            acquisitionCost: Number(data.acquisitionCost || 0),
+            currentWeightKg: data.currentWeightKg === undefined ? null : Number(data.currentWeightKg)
+        })
         if (success)
         {
             reset()
@@ -143,6 +150,18 @@ export default function CattleListPage()
                             <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
                             <input type="date" {...register('dateOfBirth')} className="input-field" />
                             {errors.dateOfBirth && <p className="text-red-600 text-xs mt-1">{errors.dateOfBirth.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Acquisition Date</label>
+                            <input type="date" {...register('acquisitionDate')} className="input-field" />
+                            {errors.acquisitionDate && <p className="text-red-600 text-xs mt-1">{errors.acquisitionDate.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Acquisition Cost</label>
+                            <input type="number" step="0.01" {...register('acquisitionCost', { valueAsNumber: true })} className="input-field" />
+                            {errors.acquisitionCost && <p className="text-red-600 text-xs mt-1">{errors.acquisitionCost.message}</p>}
                         </div>
 
                         <div>

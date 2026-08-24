@@ -1,12 +1,12 @@
 import { z } from 'zod'
 
 export const cattleSchema = z.object({
-    tagNumber: z.string().min(1, 'Tag number is required'),
-    breed: z.string().min(1, 'Breed is required'),
+    category: z.string().min(1, 'Category is required'),
     sex: z.enum(['Male', 'Female'], 'Sex is required'),
     dateOfBirth: z.string().min(1, 'Date of birth is required'),
-    currentWeightKg: z.number().min(1, 'Weight must be greater than 0'),
-    description: z.string().optional()
+    currentWeightKg: z.number().min(0, 'Weight cannot be negative').optional(),
+    acquisitionDate: z.string().min(1, 'Acquisition date is required'),
+    acquisitionCost: z.number().min(0, 'Acquisition cost cannot be negative')
 })
 
 export const palmHarvestSchema = z.object({

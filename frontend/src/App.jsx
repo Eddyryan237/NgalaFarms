@@ -20,6 +20,7 @@ import DetailView from './pages/founder/DetailView'
 import ManagerDashboard from './pages/manager/ManagerDashboard'
 import DailyOperationsPage from './pages/manager/DailyOperationsPage'
 import CattleListPage from './pages/manager/CattleListPage'
+import SheepPage from './pages/manager/SheepPage'
 import PalmHarvestPage from './pages/manager/PalmHarvestPage'
 import SalesPage from './pages/manager/SalesPage'
 import ExpensesPage from './pages/manager/ExpensesPage'
@@ -121,6 +122,7 @@ function AppContent()
                         <Route path="/manager/dashboard" element={<ManagerDashboard />} />
                         <Route path="/manager/daily-operations" element={<DailyOperationsPage />} />
                         <Route path="/manager/cattle" element={<CattleListPage />} />
+                        <Route path="/manager/sheep" element={<SheepPage />} />
                         <Route path="/manager/palm-harvest" element={<PalmHarvestPage />} />
                         <Route path="/manager/production" element={<ProductionPage />} />
                         <Route path="/manager/sales" element={<SalesPage />} />

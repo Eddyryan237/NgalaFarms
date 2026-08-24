@@ -33,6 +33,10 @@ public static class DatabaseSeeder
             END $$;
             """);
         await context.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE IF EXISTS "Sheep"
+            ADD COLUMN IF NOT EXISTS "Status" text NOT NULL DEFAULT 'Active';
+            """);
+        await context.Database.ExecuteSqlRawAsync("""
             DO $$
             BEGIN
                 IF to_regclass('public."Cattle"') IS NOT NULL THEN

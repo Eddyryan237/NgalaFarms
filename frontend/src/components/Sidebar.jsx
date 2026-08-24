@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Leaf, Home, TrendingUp, FileText, BarChart3, Zap, Users, Wallet, LogOut, X } from 'lucide-react'
+import { Leaf, Home, TrendingUp, FileText, BarChart3, Zap, Users, Wallet, LogOut, X, Beef } from 'lucide-react'
 import { clearAuth } from '../lib/auth'
 
 export default function Sidebar({ isFounder, isOpen = true, onClose })
@@ -61,6 +61,7 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
                         {navLink('/manager/daily-operations', 'Daily Ops', <TrendingUp size={18} />)}
                         {navLink('/manager/palm-harvest', 'Palm Harvest', <Zap size={18} />)}
                         {navLink('/manager/cattle', 'Cattle', <TrendingUp size={18} />)}
+                        {navLink('/manager/sheep', 'Sheep', <Beef size={18} />)}
                         {navLink('/manager/production', 'Production', <Leaf size={18} />)}
                         {navLink('/manager/sales', 'Sales', <FileText size={18} />)}
                         {navLink('/manager/expenses', 'Expenses', <BarChart3 size={18} />)}
