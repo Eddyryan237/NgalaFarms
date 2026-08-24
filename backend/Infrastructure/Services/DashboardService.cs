@@ -25,6 +25,7 @@ public class DashboardService : IDashboardService
                          + await _db.CattleSales.SumAsync(s => s.SalePrice);
         var totalExpenses = await _db.Expenses.Where(e => !e.IsDeleted).SumAsync(e => e.Amount)
                  + await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid && !_db.Expenses.Any(e => e.SalaryId == s.Id && !e.IsDeleted)).SumAsync(s => s.Amount);
+        var totalPayroll = await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid).SumAsync(s => s.Amount);
         var netProfit = totalRevenue - totalExpenses;
 
         // Monthly trend – last 6 months
@@ -41,7 +42,8 @@ public class DashboardService : IDashboardService
             months.Add(new MonthlyRevenueDto { Month = monthDate.ToString("MMM yyyy"), Revenue = rev, Expenses = exp, Profit = rev - exp });
         }
 
-        var palmOilProduced = await _db.PalmProcessings.Where(p => !p.IsDeleted).SumAsync(p => p.PalmOilLitres);
+        var palmOilProduced = await _db.PalmProcessings.Where(p => !p.IsDeleted).SumAsync(p => p.PalmOilLitres)
+                      + await _db.Productions.Where(p => p.Category == "Palm Oil" && new[] { "l", "litre", "litres", "liter", "liters" }.Contains(p.Unit.ToLower())).SumAsync(p => p.Quantity);
         var totalSalesQuantity = await _db.Sales.Where(s => !s.IsDeleted).SumAsync(s => s.QuantityLitres);
         var palmStock = Math.Max(0, palmOilProduced - totalSalesQuantity);
         var palmRevenue = await _db.Sales.Where(s => !s.IsDeleted).SumAsync(s => s.TotalPrice);
@@ -69,7 +71,7 @@ public class DashboardService : IDashboardService
 
         return new FounderDashboardDto
         {
-            Financial = new FinancialKpiDto { TotalRevenue = totalRevenue, TotalExpenses = totalExpenses, NetProfit = netProfit, ProfitMarginPercent = totalRevenue > 0 ? Math.Round(netProfit / totalRevenue * 100, 1) : 0, MonthlyRevenue = months },
+            Financial = new FinancialKpiDto { TotalRevenue = totalRevenue, TotalExpenses = totalExpenses, TotalPayroll = totalPayroll, NetProfit = netProfit, ProfitMarginPercent = totalRevenue > 0 ? Math.Round(netProfit / totalRevenue * 100, 1) : 0, MonthlyRevenue = months },
             PalmOil = new PalmKpiDto { TotalFruitHarvestedKg = palmFruitKg, TotalOilProducedLitres = palmOilLitres, CurrentStockLitres = palmStock, AverageYieldPercent = Math.Round(avgYield, 2), PalmRevenue = palmRevenue, PalmExpenses = palmExpenses },
             Cattle = new CattleKpiDto { TotalCattle = activeCattle + maleCattle - maleCattle + activeCattle - activeCattle + activeCattle, MaleCattle = maleCattle, FemaleCattle = femaleCattle, ActiveCattle = activeCattle, HealthAlerts = healthAlerts, VaccinationsDue = vacsDue, CattleRevenue = cattleRevenue },
             Sheep = new SheepKpiDto { TotalSheep = sheep.Count, MaleSheep = sheep.Count(s => s.Sex == "Male"), FemaleSheep = sheep.Count(s => s.Sex == "Female"), TotalWeightKg = sheep.Sum(s => s.CurrentWeightKg ?? 0) },
@@ -84,8 +86,10 @@ public class DashboardService : IDashboardService
         var now = DateTime.UtcNow;
 
         var todayHarvest = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= today && h.HarvestDate < tomorrow).SumAsync(h => h.TotalWeightKg);
-        var todayProduction = await _db.PalmProcessings.Where(p => p.ProcessingDate >= today && p.ProcessingDate < tomorrow).SumAsync(p => p.PalmOilLitres);
-        var palmOilProduced = await _db.PalmProcessings.Where(p => !p.IsDeleted).SumAsync(p => p.PalmOilLitres);
+        var todayProduction = await _db.PalmProcessings.Where(p => !p.IsDeleted && p.ProcessingDate >= today && p.ProcessingDate < tomorrow).SumAsync(p => p.PalmOilLitres)
+                    + await _db.Productions.Where(p => p.Category == "Palm Oil" && new[] { "l", "litre", "litres", "liter", "liters" }.Contains(p.Unit.ToLower()) && p.Date >= today && p.Date < tomorrow).SumAsync(p => p.Quantity);
+        var palmOilProduced = await _db.PalmProcessings.Where(p => !p.IsDeleted).SumAsync(p => p.PalmOilLitres)
+                      + await _db.Productions.Where(p => p.Category == "Palm Oil" && new[] { "l", "litre", "litres", "liter", "liters" }.Contains(p.Unit.ToLower())).SumAsync(p => p.Quantity);
             var totalSalesQuantity = await _db.Sales.Where(s => !s.IsDeleted).SumAsync(s => s.QuantityLitres);
             var palmStock = Math.Max(0, palmOilProduced - totalSalesQuantity);
         var activeCattle = await _db.Cattle.CountAsync(c => !c.IsDeleted && c.Status == CattleStatus.Active);

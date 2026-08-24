@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Trash2, RefreshCw, Download, Eye, EyeOff, BarChart3, TrendingUp, Calendar, FileText, X } from 'lucide-react'
+import { AlertCircle, Trash2, RefreshCw, Download, Eye, EyeOff, BarChart3, TrendingUp, Calendar, FileText, X, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import apiClient from '../../lib/api'
 
@@ -144,6 +144,15 @@ export default function FounderDashboard()
                     <p className="text-green-600 text-xs md:text-sm font-medium">Total Expenses</p>
                     <p className="text-2xl md:text-3xl font-bold text-green-900 mt-2">{formatCurrency(totalExpenses)}</p>
                     <p className="text-xs text-green-700 mt-2">{expenses.length} records including payroll</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg p-4 md:p-6">
+                    <div className="flex items-center gap-2">
+                        <Wallet className="text-red-600" size={18} />
+                        <p className="text-red-600 text-xs md:text-sm font-medium">Total Payroll</p>
+                    </div>
+                    <p className="text-2xl md:text-3xl font-bold text-red-900 mt-2">{formatCurrency(dashboard.financial?.totalPayroll ?? 0)}</p>
+                    <p className="text-xs text-red-700 mt-2">Paid salaries included in expenses</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4 md:p-6">

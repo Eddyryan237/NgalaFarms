@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Loader, Printer, Save, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,12 +15,13 @@ const formatDate = (date) => date ? new Date(date).toLocaleDateString() : '-'
 export default function PayrollPage()
 {
 	const [receipt, setReceipt] = useState(null)
+	const queryClient = useQueryClient()
 	const { addToast } = useToast()
 	const { submit, loading, error } = useFormHandler(['payroll'])
 	const { data: employees = [], isLoading: employeesLoading } = useQuery({ queryKey: ['employees'], queryFn: () => apiClient.get('/employees').then(response => response.data) })
 	const { data: payroll = [], isLoading: payrollLoading, refetch } = useQuery({ queryKey: ['payroll'], queryFn: () => apiClient.get('/payroll').then(response => response.data) })
 	const { register, handleSubmit, reset, formState: { errors } } = useForm({ resolver: zodResolver(payrollSchema), defaultValues: { paymentDate: new Date().toISOString().slice(0, 10), paymentMethod: 'Cash' } })
-	const onSubmit = async (data) => { const periodStart = `${data.period}-01`; const periodEnd = new Date(Number(data.period.slice(0, 4)), Number(data.period.slice(5, 7)), 0).toISOString().slice(0, 10); const saved = await submit('/payroll', { ...data, employeeId: Number(data.employeeId), amount: Number(data.amount), periodStart, periodEnd, status: 'Paid' }); if (!saved) { addToast('Failed to record payroll', 'error'); return }; setReceipt(saved); reset({ paymentDate: new Date().toISOString().slice(0, 10), paymentMethod: 'Cash' }); refetch(); addToast('Payroll recorded and receipt generated', 'success') }
+	const onSubmit = async (data) => { const periodStart = `${data.period}-01`; const periodEnd = new Date(Number(data.period.slice(0, 4)), Number(data.period.slice(5, 7)), 0).toISOString().slice(0, 10); const saved = await submit('/payroll', { ...data, employeeId: Number(data.employeeId), amount: Number(data.amount), periodStart, periodEnd, status: 'Paid' }); if (!saved) { addToast('Failed to record payroll', 'error'); return }; setReceipt(saved); reset({ paymentDate: new Date().toISOString().slice(0, 10), paymentMethod: 'Cash' }); refetch(); queryClient.invalidateQueries({ queryKey: ['founder-dashboard'] }); queryClient.invalidateQueries({ queryKey: ['manager-dashboard'] }); queryClient.invalidateQueries({ queryKey: ['all-expenses'] }); addToast('Payroll recorded and receipt generated', 'success') }
 	const groupedPayroll = payroll.reduce((groups, item) => { const month = item.period || 'Unassigned'; (groups[month] ||= []).push(item); return groups }, {})
 	const sortedMonths = Object.keys(groupedPayroll).sort((a, b) => b.localeCompare(a))
 	const deletePayroll = async (id) => { if (!window.confirm('Permanently delete this payroll record?')) return; try { await apiClient.delete(`/payroll/${id}`); refetch(); addToast('Payroll deleted permanently', 'success') } catch (err) { addToast(err.response?.data?.message || 'Failed to delete payroll', 'error') } }

@@ -157,7 +157,11 @@ public static class DatabaseSeeder
                     await userManager.AddToRoleAsync(created, "Manager");
             }
         }
+        // Operational data is entered by users and must never be populated with demo records on startup.
+        return;
 
+
+#if ENABLE_DEMO_SEED_DATA
         // Customer records are managed by the manager and added when a sale is recorded.
         // No default distributor/retailer entries are seeded, so every customer can be tracked with its own credentials.
 
@@ -430,5 +434,7 @@ public static class DatabaseSeeder
             }
             await context.SaveChangesAsync();
         }
+    }
+#endif
     }
 }

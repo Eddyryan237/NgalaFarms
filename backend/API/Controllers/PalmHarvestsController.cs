@@ -60,9 +60,12 @@ public class PalmHarvestsController : ControllerBase
         var h = new PalmHarvest
         {
             HarvestId = await _ids.GenerateHarvestIdAsync(),
-            PlantationId = req.PlantationId, PalmBlockId = req.PalmBlockId,
-            HarvestDate = req.HarvestDate, NumberOfBunches = req.NumberOfBunches,
-            TotalWeightKg = req.TotalWeightKg, HarvestTeam = req.HarvestTeam,
+            PlantationId = req.PlantationId,
+            PalmBlockId = req.PalmBlockId,
+            HarvestDate = req.HarvestDate,
+            NumberOfBunches = req.NumberOfBunches,
+            TotalWeightKg = req.TotalWeightKg,
+            HarvestTeam = req.HarvestTeam,
             Notes = req.Notes
         };
         _db.PalmHarvests.Add(h);
@@ -74,9 +77,12 @@ public class PalmHarvestsController : ControllerBase
             inv.CurrentQuantity += req.TotalWeightKg;
             _db.StockTransactions.Add(new StockTransaction
             {
-                InventoryId = inv.Id, TransactionType = StockTransactionType.Produced,
-                Quantity = req.TotalWeightKg, BalanceAfter = inv.CurrentQuantity,
-                ReferenceId = h.HarvestId, Description = $"Harvest {h.HarvestId}",
+                InventoryId = inv.Id,
+                TransactionType = StockTransactionType.Produced,
+                Quantity = req.TotalWeightKg,
+                BalanceAfter = inv.CurrentQuantity,
+                ReferenceId = h.HarvestId,
+                Description = $"Harvest {h.HarvestId}",
                 TransactionDate = req.HarvestDate
             });
         }
@@ -130,11 +136,18 @@ public class PalmHarvestsController : ControllerBase
 
     private static PalmHarvestDto Map(PalmHarvest h) => new()
     {
-        Id = h.Id, HarvestId = h.HarvestId, PlantationId = h.PlantationId,
-        PlantationName = h.Plantation?.Name ?? "", PalmBlockId = h.PalmBlockId,
-        BlockName = h.PalmBlock?.Name, HarvestDate = h.HarvestDate,
-        NumberOfBunches = h.NumberOfBunches, TotalWeightKg = h.TotalWeightKg,
-        HarvestTeam = h.HarvestTeam, Notes = h.Notes,
-        IsProcessed = h.IsProcessed, CreatedAt = h.CreatedAt
+        Id = h.Id,
+        HarvestId = h.HarvestId,
+        PlantationId = h.PlantationId,
+        PlantationName = h.Plantation?.Name ?? "",
+        PalmBlockId = h.PalmBlockId,
+        BlockName = h.PalmBlock?.Name,
+        HarvestDate = h.HarvestDate,
+        NumberOfBunches = h.NumberOfBunches,
+        TotalWeightKg = h.TotalWeightKg,
+        HarvestTeam = h.HarvestTeam,
+        Notes = h.Notes,
+        IsProcessed = h.IsProcessed,
+        CreatedAt = h.CreatedAt
     };
 }

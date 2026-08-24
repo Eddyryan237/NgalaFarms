@@ -55,8 +55,14 @@ public class NotificationsController : ControllerBase
 
     private static NotificationDto Map(Domain.Entities.Notification n) => new()
     {
-        Id = n.Id, Title = n.Title, Message = n.Message, Category = n.Category,
-        Priority = n.Priority, IsRead = n.IsRead, UserId = n.UserId,
-        LinkUrl = n.LinkUrl, CreatedAt = n.CreatedAt
+        Id = n.Id,
+        Title = n.Title,
+        Message = n.Message,
+        Category = n.Category,
+        Priority = n.Priority,
+        IsRead = n.IsRead,
+        UserId = n.UserId,
+        LinkUrl = n.LinkUrl,
+        CreatedAt = n.CreatedAt
     };
 }

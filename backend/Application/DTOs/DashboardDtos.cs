@@ -13,6 +13,7 @@ public class FinancialKpiDto
 {
     public decimal TotalRevenue { get; set; }
     public decimal TotalExpenses { get; set; }
+    public decimal TotalPayroll { get; set; }
     public decimal NetProfit { get; set; }
     public decimal ProfitMarginPercent { get; set; }
     public List<MonthlyRevenueDto> MonthlyRevenue { get; set; } = new();

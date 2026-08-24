@@ -45,9 +45,14 @@ public class ExpensesController : ControllerBase
         var e = new Expense
         {
             ExpenseId = await _ids.GenerateExpenseIdAsync(),
-            Category = req.Category, Division = req.Division, Description = req.Description,
-            Amount = req.Amount, Date = req.Date, PaymentMethod = req.PaymentMethod,
-            EmployeeId = req.EmployeeId, Notes = req.Notes
+            Category = req.Category,
+            Division = req.Division,
+            Description = req.Description,
+            Amount = req.Amount,
+            Date = req.Date,
+            PaymentMethod = req.PaymentMethod,
+            EmployeeId = req.EmployeeId,
+            Notes = req.Notes
         };
         _db.Expenses.Add(e);
         await _db.SaveChangesAsync();
@@ -69,9 +74,17 @@ public class ExpensesController : ControllerBase
 
     private static ExpenseDto Map(Expense e) => new()
     {
-        Id = e.Id, ExpenseId = e.ExpenseId, Category = e.Category, Division = e.Division,
-        Description = e.Description, Amount = e.Amount, Date = e.Date,
-        PaymentMethod = e.PaymentMethod, EmployeeId = e.EmployeeId,
-        EmployeeName = e.Employee?.FullName, Notes = e.Notes, CreatedAt = e.CreatedAt
+        Id = e.Id,
+        ExpenseId = e.ExpenseId,
+        Category = e.Category,
+        Division = e.Division,
+        Description = e.Description,
+        Amount = e.Amount,
+        Date = e.Date,
+        PaymentMethod = e.PaymentMethod,
+        EmployeeId = e.EmployeeId,
+        EmployeeName = e.Employee?.FullName,
+        Notes = e.Notes,
+        CreatedAt = e.CreatedAt
     };
 }

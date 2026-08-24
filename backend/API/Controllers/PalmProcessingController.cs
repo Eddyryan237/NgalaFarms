@@ -42,10 +42,15 @@ public class PalmProcessingController : ControllerBase
         var p = new PalmProcessing
         {
             ProcessingId = await _ids.GenerateProcessingIdAsync(),
-            ProcessingDate = req.ProcessingDate, RawFruitKg = req.RawFruitKg,
-            PalmOilLitres = req.PalmOilLitres, ProcessingCost = req.ProcessingCost,
-            LaborCost = req.LaborCost, FuelCost = req.FuelCost, WasteKg = req.WasteKg,
-            YieldPercentage = yieldPct, Notes = req.Notes
+            ProcessingDate = req.ProcessingDate,
+            RawFruitKg = req.RawFruitKg,
+            PalmOilLitres = req.PalmOilLitres,
+            ProcessingCost = req.ProcessingCost,
+            LaborCost = req.LaborCost,
+            FuelCost = req.FuelCost,
+            WasteKg = req.WasteKg,
+            YieldPercentage = yieldPct,
+            Notes = req.Notes
         };
         _db.PalmProcessings.Add(p);
 
@@ -56,9 +61,12 @@ public class PalmProcessingController : ControllerBase
             fruitInv.CurrentQuantity = Math.Max(0, fruitInv.CurrentQuantity - req.RawFruitKg);
             _db.StockTransactions.Add(new StockTransaction
             {
-                InventoryId = fruitInv.Id, TransactionType = StockTransactionType.Used,
-                Quantity = req.RawFruitKg, BalanceAfter = fruitInv.CurrentQuantity,
-                ReferenceId = p.ProcessingId, Description = $"Used in processing {p.ProcessingId}",
+                InventoryId = fruitInv.Id,
+                TransactionType = StockTransactionType.Used,
+                Quantity = req.RawFruitKg,
+                BalanceAfter = fruitInv.CurrentQuantity,
+                ReferenceId = p.ProcessingId,
+                Description = $"Used in processing {p.ProcessingId}",
                 TransactionDate = req.ProcessingDate
             });
         }
@@ -70,9 +78,12 @@ public class PalmProcessingController : ControllerBase
             oilInv.CurrentQuantity += req.PalmOilLitres;
             _db.StockTransactions.Add(new StockTransaction
             {
-                InventoryId = oilInv.Id, TransactionType = StockTransactionType.Produced,
-                Quantity = req.PalmOilLitres, BalanceAfter = oilInv.CurrentQuantity,
-                ReferenceId = p.ProcessingId, Description = $"Produced from processing {p.ProcessingId}",
+                InventoryId = oilInv.Id,
+                TransactionType = StockTransactionType.Produced,
+                Quantity = req.PalmOilLitres,
+                BalanceAfter = oilInv.CurrentQuantity,
+                ReferenceId = p.ProcessingId,
+                Description = $"Produced from processing {p.ProcessingId}",
                 TransactionDate = req.ProcessingDate
             });
         }
@@ -81,8 +92,11 @@ public class PalmProcessingController : ControllerBase
         var batchId = await _ids.GenerateBatchIdAsync();
         _db.PalmOilBatches.Add(new PalmOilBatch
         {
-            BatchId = batchId, ProcessingId = p.Id, ProductionDate = req.ProcessingDate,
-            QuantityLitres = req.PalmOilLitres, RemainingLitres = req.PalmOilLitres,
+            BatchId = batchId,
+            ProcessingId = p.Id,
+            ProductionDate = req.ProcessingDate,
+            QuantityLitres = req.PalmOilLitres,
+            RemainingLitres = req.PalmOilLitres,
             StorageLocation = req.StorageLocation
         });
 
@@ -93,9 +107,12 @@ public class PalmProcessingController : ControllerBase
             _db.Expenses.Add(new Expense
             {
                 ExpenseId = await _ids.GenerateExpenseIdAsync(),
-                Category = "Palm Processing", Division = ExpenseDivision.PalmOil,
-                Description = $"Processing costs for {p.ProcessingId}", Amount = totalCost,
-                Date = req.ProcessingDate, PaymentMethod = PaymentMethod.Cash
+                Category = "Palm Processing",
+                Division = ExpenseDivision.PalmOil,
+                Description = $"Processing costs for {p.ProcessingId}",
+                Amount = totalCost,
+                Date = req.ProcessingDate,
+                PaymentMethod = PaymentMethod.Cash
             });
         }
 
@@ -118,11 +135,18 @@ public class PalmProcessingController : ControllerBase
 
     private static PalmProcessingDto Map(PalmProcessing p) => new()
     {
-        Id = p.Id, ProcessingId = p.ProcessingId, ProcessingDate = p.ProcessingDate,
-        RawFruitKg = p.RawFruitKg, PalmOilLitres = p.PalmOilLitres,
-        ProcessingCost = p.ProcessingCost, LaborCost = p.LaborCost, FuelCost = p.FuelCost,
-        WasteKg = p.WasteKg, YieldPercentage = p.YieldPercentage,
+        Id = p.Id,
+        ProcessingId = p.ProcessingId,
+        ProcessingDate = p.ProcessingDate,
+        RawFruitKg = p.RawFruitKg,
+        PalmOilLitres = p.PalmOilLitres,
+        ProcessingCost = p.ProcessingCost,
+        LaborCost = p.LaborCost,
+        FuelCost = p.FuelCost,
+        WasteKg = p.WasteKg,
+        YieldPercentage = p.YieldPercentage,
         TotalCost = p.ProcessingCost + p.LaborCost + p.FuelCost,
-        Notes = p.Notes, CreatedAt = p.CreatedAt
+        Notes = p.Notes,
+        CreatedAt = p.CreatedAt
     };
 }

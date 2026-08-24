@@ -25,10 +25,18 @@ public class PlantationsController : ControllerBase
         var list = await _db.Plantations.Include(p => p.Blocks).OrderBy(p => p.Name).ToListAsync();
         return Ok(list.Select(p => new PlantationDto
         {
-            Id = p.Id, PlantationId = p.PlantationId, Name = p.Name, Location = p.Location,
-            TotalAreaHectares = p.TotalAreaHectares, NumberOfTrees = p.NumberOfTrees,
-            PlantingDate = p.PlantingDate, PalmVariety = p.PalmVariety, Status = p.Status,
-            Notes = p.Notes, BlockCount = p.Blocks.Count(b => !b.IsDeleted), CreatedAt = p.CreatedAt
+            Id = p.Id,
+            PlantationId = p.PlantationId,
+            Name = p.Name,
+            Location = p.Location,
+            TotalAreaHectares = p.TotalAreaHectares,
+            NumberOfTrees = p.NumberOfTrees,
+            PlantingDate = p.PlantingDate,
+            PalmVariety = p.PalmVariety,
+            Status = p.Status,
+            Notes = p.Notes,
+            BlockCount = p.Blocks.Count(b => !b.IsDeleted),
+            CreatedAt = p.CreatedAt
         }));
     }
 

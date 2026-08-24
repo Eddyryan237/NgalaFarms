@@ -26,16 +26,20 @@ public class AnalyticsService : IAnalyticsService
 
         var palmExp = await _db.Expenses.Where(e => !e.IsDeleted && e.Division == ExpenseDivision.PalmOil && e.Date >= start && e.Date <= end).SumAsync(e => e.Amount);
         var cattleExp = await _db.Expenses.Where(e => !e.IsDeleted && e.Division == ExpenseDivision.Cattle && e.Date >= start && e.Date <= end).SumAsync(e => e.Amount);
-        var genExp = await _db.Expenses.Where(e => !e.IsDeleted && e.Division == ExpenseDivision.General && e.Date >= start && e.Date <= end).SumAsync(e => e.Amount);
+        var genExp = await _db.Expenses.Where(e => !e.IsDeleted && e.Division == ExpenseDivision.General && e.SalaryId == null && e.Date >= start && e.Date <= end).SumAsync(e => e.Amount);
         var salaryExp = await _db.Salaries.Where(s => s.Status == SalaryStatus.Paid && s.PeriodStart >= start && s.PeriodStart <= end).SumAsync(s => s.Amount);
         var totalExpenses = palmExp + cattleExp + genExp + salaryExp;
         var netProfit = totalRevenue - totalExpenses;
 
         // Palm analytics
         var fruitKg = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= start && h.HarvestDate <= end).SumAsync(h => h.TotalWeightKg);
-        var oilLitres = await _db.PalmProcessings.Where(p => p.ProcessingDate >= start && p.ProcessingDate <= end).SumAsync(p => p.PalmOilLitres);
+        var oilLitres = await _db.PalmProcessings.Where(p => !p.IsDeleted && p.ProcessingDate >= start && p.ProcessingDate <= end).SumAsync(p => p.PalmOilLitres)
+                   + await _db.Productions.Where(p => p.Category == "Palm Oil" && new[] { "l", "litre", "litres", "liter", "liters" }.Contains(p.Unit.ToLower()) && p.Date >= start && p.Date <= end).SumAsync(p => p.Quantity);
         var oilSold = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= start && s.SaleDate <= end).SumAsync(s => s.QuantityLitres);
-        var oilStock = await _db.Inventories.Where(i => i.ProductName == "Palm Oil").SumAsync(i => i.CurrentQuantity);
+        var oilProducedAll = await _db.PalmProcessings.Where(p => !p.IsDeleted).SumAsync(p => p.PalmOilLitres)
+                   + await _db.Productions.Where(p => p.Category == "Palm Oil" && new[] { "l", "litre", "litres", "liter", "liters" }.Contains(p.Unit.ToLower())).SumAsync(p => p.Quantity);
+        var oilSoldAll = await _db.Sales.Where(s => !s.IsDeleted).SumAsync(s => s.QuantityLitres);
+        var oilStock = Math.Max(0, oilProducedAll - oilSoldAll);
         var palmProdCost = await _db.PalmProcessings.Where(p => p.ProcessingDate >= start && p.ProcessingDate <= end).SumAsync(p => p.ProcessingCost + p.LaborCost + p.FuelCost);
         var avgYield = fruitKg > 0 ? (oilLitres / fruitKg) * 100 : 0;
 
@@ -47,7 +51,8 @@ public class AnalyticsService : IAnalyticsService
             var ms = new DateTime(md.Year, md.Month, 1);
             var me = ms.AddMonths(1);
             var fk = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= ms && h.HarvestDate < me).SumAsync(h => h.TotalWeightKg);
-            var ol = await _db.PalmProcessings.Where(p => p.ProcessingDate >= ms && p.ProcessingDate < me).SumAsync(p => p.PalmOilLitres);
+            var ol = await _db.PalmProcessings.Where(p => !p.IsDeleted && p.ProcessingDate >= ms && p.ProcessingDate < me).SumAsync(p => p.PalmOilLitres)
+                + await _db.Productions.Where(p => p.Category == "Palm Oil" && new[] { "l", "litre", "litres", "liter", "liters" }.Contains(p.Unit.ToLower()) && p.Date >= ms && p.Date < me).SumAsync(p => p.Quantity);
             harvestTrend.Add(new HarvestTrendDto { Period = md.ToString("MMM yy"), FruitKg = fk, OilLitres = ol });
         }
 

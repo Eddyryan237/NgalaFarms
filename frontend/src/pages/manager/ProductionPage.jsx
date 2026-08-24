@@ -46,40 +46,47 @@ export default function ProductionPage()
         }
     })
 
-    const invalidateProductionQueries = () => {
+    const invalidateProductionQueries = () =>
+    {
         queryClient.invalidateQueries({ queryKey: ['production'] })
         queryClient.invalidateQueries({ queryKey: ['all-production'] })
         queryClient.invalidateQueries({ queryKey: ['manager-dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['founder-dashboard'] })
     }
 
     const saveMutation = useMutation({
         mutationFn: (payload) => editingId
             ? apiClient.put(`/production/${editingId}`, payload)
             : apiClient.post('/production', payload),
-        onSuccess: () => {
+        onSuccess: () =>
+        {
             invalidateProductionQueries()
             resetForm()
             showToast(editingId ? 'Production record updated successfully!' : 'Production recorded successfully!', 'success')
         },
-        onError: (err) => {
+        onError: (err) =>
+        {
             showToast(err.response?.data?.message || (editingId ? 'Failed to update production record' : 'Failed to record production'), 'error')
         }
     })
 
     const deleteMutation = useMutation({
         mutationFn: (id) => apiClient.delete(`/production/${id}`),
-        onSuccess: () => {
+        onSuccess: () =>
+        {
             invalidateProductionQueries()
             setSelectedProduction(null)
             setShowDetails(false)
             showToast('Production deleted successfully!', 'success')
         },
-        onError: (err) => {
+        onError: (err) =>
+        {
             showToast(err.response?.data?.message || 'Failed to delete production record', 'error')
         }
     })
 
-    const resetForm = () => {
+    const resetForm = () =>
+    {
         reset({
             date: new Date().toISOString().split('T')[0],
             category: 'Palm Oil',
@@ -93,7 +100,8 @@ export default function ProductionPage()
         setShowModal(false)
     }
 
-    const onSubmit = (data) => {
+    const onSubmit = (data) =>
+    {
         const payload = {
             date: data.date,
             category: data.category,
@@ -107,7 +115,8 @@ export default function ProductionPage()
         saveMutation.mutate(payload)
     }
 
-    const openEdit = (record) => {
+    const openEdit = (record) =>
+    {
         setEditingId(record.id)
         setSelectedProduction(record)
         setValue('date', record.date ? record.date.split('T')[0] : new Date().toISOString().split('T')[0])
@@ -195,8 +204,8 @@ export default function ProductionPage()
                                             <td className="py-3 px-4">{formatDate(p.date)}</td>
                                             <td className="py-3 px-4 text-sm">
                                                 <span className={`px-2 py-1 rounded text-white text-xs font-semibold ${p.category === 'Palm Oil' ? 'bg-green-600' :
-                                                        p.category === 'Cattle' ? 'bg-amber-600' :
-                                                            'bg-blue-600'
+                                                    p.category === 'Cattle' ? 'bg-amber-600' :
+                                                        'bg-blue-600'
                                                     }`}>
                                                     {p.category}
                                                 </span>
