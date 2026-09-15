@@ -110,7 +110,6 @@ function AppContent()
                         <Route path="/founder/reports/daily" element={<DailyReportPage />} />
                         <Route path="/founder/reports/monthly" element={<MonthlyReportPage />} />
                         <Route path="/founder/reports/yearly" element={<YearlyReportPage />} />
-                        <Route path="/founder/reports/general" element={<GeneralReportsPage />} />
                         <Route path="/founder/reports/:id" element={<WeeklyReportDetail />} />
                         <Route path="/founder/details/:type/:id" element={<DetailView />} />
                         <Route path="/founder/audit-logs" element={<AuditLogsPage />} />
@@ -129,6 +128,7 @@ function AppContent()
                         <Route path="/manager/expenses" element={<ExpensesPage />} />
                         <Route path="/manager/employees" element={<EmployeesPage />} />
                         <Route path="/manager/payroll" element={<PayrollPage />} />
+                        <Route path="/manager/reports/general" element={<GeneralReportsPage />} />
                     </Route>
                 )}
 

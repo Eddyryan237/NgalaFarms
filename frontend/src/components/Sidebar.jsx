@@ -50,8 +50,7 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
                         <div className="text-xs font-semibold text-gray-500 px-4 py-2 uppercase">Founder</div>
                         {navLink('/founder/dashboard', 'Dashboard', <Home size={18} />)}
                         {navLink('/founder/analytics', 'Analytics', <BarChart3 size={18} />)}
-                        {navLink('/founder/reports', 'Weekly Reports', <FileText size={18} />)}
-                        {navLink('/founder/reports/general', 'General Reports', <FileText size={18} />)}
+                        {navLink('/founder/reports', 'Reports', <FileText size={18} />)}
                         {navLink('/founder/audit-logs', 'Audit Logs', <TrendingUp size={18} />)}
                     </>
                 ) : (
@@ -67,6 +66,7 @@ export default function Sidebar({ isFounder, isOpen = true, onClose })
                         {navLink('/manager/expenses', 'Expenses', <BarChart3 size={18} />)}
                         {navLink('/manager/employees', 'Employees', <Users size={18} />)}
                         {navLink('/manager/payroll', 'Payroll', <Wallet size={18} />)}
+                        {navLink('/manager/reports/general', 'General Report', <FileText size={18} />)}
                     </>
                 )}
             </nav>

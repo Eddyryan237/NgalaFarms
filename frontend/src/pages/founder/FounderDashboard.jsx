@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Trash2, RefreshCw, Download, Eye, EyeOff, BarChart3, TrendingUp, Calendar, FileText, X, Wallet } from 'lucide-react'
+import { AlertCircle, Trash2, RefreshCw, Download, Eye, EyeOff, X, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import apiClient from '../../lib/api'
 
@@ -105,40 +105,6 @@ export default function FounderDashboard()
                 <p className="text-gray-600 text-sm md:text-base mt-2">Complete system overview and daily reports</p>
             </div>
 
-            {/* Reports Quick Access Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <Link to="/founder/reports" className="card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="flex items-start gap-2 mb-2">
-                        <FileText className="text-blue-600 flex-shrink-0" size={20} />
-                        <h3 className="font-bold text-gray-900 text-sm md:text-base">Weekly Reports</h3>
-                    </div>
-                    <p className="text-xs text-gray-600">View all weekly reports and trends</p>
-                </Link>
-
-                <Link to="/founder/reports/daily" className="card bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="flex items-start gap-2 mb-2">
-                        <Calendar className="text-green-600 flex-shrink-0" size={20} />
-                        <h3 className="font-bold text-gray-900 text-sm md:text-base">Daily Report</h3>
-                    </div>
-                    <p className="text-xs text-gray-600">Today's summary and activities</p>
-                </Link>
-
-                <Link to="/founder/reports/monthly" className="card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="flex items-start gap-2 mb-2">
-                        <TrendingUp className="text-purple-600 flex-shrink-0" size={20} />
-                        <h3 className="font-bold text-gray-900 text-sm md:text-base">Monthly Report</h3>
-                    </div>
-                    <p className="text-xs text-gray-600">Month to date performance</p>
-                </Link>
-
-                <Link to="/founder/reports/yearly" className="card bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="flex items-center gap-3 mb-2">
-                        <BarChart3 className="text-amber-600" size={24} />
-                        <h3 className="font-bold text-gray-900">Yearly Report</h3>
-                    </div>
-                    <p className="text-xs text-gray-600">Annual overview and analysis</p>
-                </Link>
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-4 md:p-6">
                     <p className="text-green-600 text-xs md:text-sm font-medium">Total Expenses</p>
@@ -192,7 +158,7 @@ export default function FounderDashboard()
                 </div>
             </div>
 
-            {/* Daily Reports */}
+            {/* Today's activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-8">
                 {/* Today's Expenses */}
                 <div className="card">
@@ -320,6 +286,34 @@ export default function FounderDashboard()
                                     Total Operations: {todayOperations.length}
                                 </p>
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="card lg:col-span-2">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold text-gray-900">All Operations</h2>
+                        <span className="text-sm text-gray-500">{dailyOperations.length} records</span>
+                    </div>
+                    {dailyOperations.length === 0 ? (
+                        <p className="text-gray-500 text-sm">No operations recorded.</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="border-b border-gray-200 text-left text-gray-600">
+                                    <tr><th className="py-2 pr-4">Date</th><th className="py-2 pr-4">Operation</th><th className="py-2 pr-4">Details</th><th className="py-2">Performed by</th></tr>
+                                </thead>
+                                <tbody>
+                                    {[...dailyOperations].sort((a, b) => new Date(b.date) - new Date(a.date)).map(operation => (
+                                        <tr key={operation.id} className="border-b border-gray-100 align-top">
+                                            <td className="py-3 pr-4 whitespace-nowrap">{formatDate(operation.date)}</td>
+                                            <td className="py-3 pr-4 font-semibold">{operation.operationType}</td>
+                                            <td className="py-3 pr-4 text-gray-600">{operation.description || 'No details provided.'}{operation.plantationId ? ` • Plantation ${operation.plantationId}` : ''}{operation.palmBlockId ? ` • Block ${operation.palmBlockId}` : ''}</td>
+                                            <td className="py-3 text-gray-600">{operation.performedBy || 'Manager'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </div>

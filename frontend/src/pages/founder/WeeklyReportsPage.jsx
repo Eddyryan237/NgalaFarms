@@ -17,7 +17,7 @@ export default function WeeklyReportsPage()
     {
         return (
             <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">Weekly Reports</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">Reports</h1>
                 <div className="card flex items-center justify-center p-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-palm-600"></div>
                 </div>
@@ -30,8 +30,8 @@ export default function WeeklyReportsPage()
             <div className="mb-8">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-4xl font-bold text-gray-900">Weekly Reports</h1>
-                        <p className="text-gray-600 mt-2">View all weekly performance reports</p>
+                        <h1 className="text-4xl font-bold text-gray-900">Reports</h1>
+                        <p className="text-gray-600 mt-2">Daily, weekly, monthly, and yearly performance reports</p>
                     </div>
                     <div className="flex gap-3">
                         <Link to="/founder" className="btn-secondary">← Dashboard</Link>

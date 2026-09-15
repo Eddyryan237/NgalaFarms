@@ -35,8 +35,8 @@ export default function MonthlyReportPage()
     const formatCurrency = (amount) => `${(Math.abs(amount || 0)).toLocaleString('en-US')} XAF`
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString()
 
-    const totalExpenses = report?.expenses?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0
-    const totalSales = report?.sales?.reduce((sum, s) => sum + (s.totalPrice || 0), 0) || 0
+    const totalExpenses = report?.totals?.expensesTotal || 0
+    const totalSales = report?.totals?.salesTotal || 0
     const profit = totalSales - totalExpenses
     const margin = totalSales > 0 ? ((profit / totalSales) * 100).toFixed(2) : 0
 

@@ -46,6 +46,8 @@ public class ReportsController : ControllerBase
         var expenses = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= start && e.Date < end).ToListAsync();
         var production = await _db.Productions.Where(p => p.Date >= start && p.Date < end).ToListAsync();
         var sales = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= start && s.SaleDate < end).ToListAsync();
+        var cattleSales = await _db.CattleSales.Where(s => s.SaleDate >= start && s.SaleDate < end).ToListAsync();
+        var salaries = await _db.Salaries.Where(s => s.Status == Domain.Enums.SalaryStatus.Paid && s.PeriodStart >= start && s.PeriodStart < end && !_db.Expenses.Any(e => e.SalaryId == s.Id && !e.IsDeleted)).ToListAsync();
         var operations = await _db.DailyOperations.Where(o => !o.IsDeleted && o.Date >= start && o.Date < end).ToListAsync();
         var harvests = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= start && h.HarvestDate < end).ToListAsync();
 
@@ -53,15 +55,17 @@ public class ReportsController : ControllerBase
         {
             date = start,
             expenses,
+            cattleSales,
+            salaries,
             production,
             sales,
             operations,
             harvests,
             totals = new
             {
-                expensesTotal = expenses.Sum(e => e.Amount),
                 productionCount = production.Count,
-                salesTotal = sales.Sum(s => s.TotalPrice),
+                salesTotal = sales.Sum(s => s.TotalPrice) + cattleSales.Sum(s => s.SalePrice),
+                expensesTotal = expenses.Sum(e => e.Amount) + salaries.Sum(s => s.Amount),
                 salesLitres = sales.Sum(s => s.QuantityLitres),
                 harvestKg = harvests.Sum(h => h.TotalWeightKg)
             }
@@ -73,16 +77,19 @@ public class ReportsController : ControllerBase
     [Authorize(Roles = "Founder")]
     public async Task<IActionResult> Monthly([FromQuery] int months = 1)
     {
+        if (months < 1 || months > 120) return BadRequest("months must be between 1 and 120");
         var end = DateTime.UtcNow.Date.AddDays(1);
         var start = end.AddMonths(-months);
 
         var expenses = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= start && e.Date < end).ToListAsync();
         var production = await _db.Productions.Where(p => p.Date >= start && p.Date < end).ToListAsync();
         var sales = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= start && s.SaleDate < end).ToListAsync();
+        var cattleSales = await _db.CattleSales.Where(s => s.SaleDate >= start && s.SaleDate < end).ToListAsync();
+        var salaries = await _db.Salaries.Where(s => s.Status == Domain.Enums.SalaryStatus.Paid && s.PeriodStart >= start && s.PeriodStart < end && !_db.Expenses.Any(e => e.SalaryId == s.Id && !e.IsDeleted)).ToListAsync();
         var operations = await _db.DailyOperations.Where(o => !o.IsDeleted && o.Date >= start && o.Date < end).ToListAsync();
         var harvests = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= start && h.HarvestDate < end).ToListAsync();
 
-        return Ok(new { start, end = end.AddDays(-1), expenses, production, sales, operations, harvests });
+        return Ok(new { start, end = end.AddDays(-1), expenses, production, sales, operations, harvests, totals = new { expensesTotal = expenses.Sum(e => e.Amount) + salaries.Sum(s => s.Amount), salesTotal = sales.Sum(s => s.TotalPrice) + cattleSales.Sum(s => s.SalePrice), productionCount = production.Count, harvestKg = harvests.Sum(h => h.TotalWeightKg) } });
     }
 
     // Yearly report: last {years} years aggregated
@@ -90,20 +97,23 @@ public class ReportsController : ControllerBase
     [Authorize(Roles = "Founder")]
     public async Task<IActionResult> Yearly([FromQuery] int years = 1)
     {
+        if (years < 1 || years > 20) return BadRequest("years must be between 1 and 20");
         var end = DateTime.UtcNow.Date.AddDays(1);
         var start = end.AddYears(-years);
 
         var expenses = await _db.Expenses.Where(e => !e.IsDeleted && e.Date >= start && e.Date < end).ToListAsync();
         var production = await _db.Productions.Where(p => p.Date >= start && p.Date < end).ToListAsync();
         var sales = await _db.Sales.Where(s => !s.IsDeleted && s.SaleDate >= start && s.SaleDate < end).ToListAsync();
+        var cattleSales = await _db.CattleSales.Where(s => s.SaleDate >= start && s.SaleDate < end).ToListAsync();
+        var salaries = await _db.Salaries.Where(s => s.Status == Domain.Enums.SalaryStatus.Paid && s.PeriodStart >= start && s.PeriodStart < end && !_db.Expenses.Any(e => e.SalaryId == s.Id && !e.IsDeleted)).ToListAsync();
         var operations = await _db.DailyOperations.Where(o => !o.IsDeleted && o.Date >= start && o.Date < end).ToListAsync();
         var harvests = await _db.PalmHarvests.Where(h => !h.IsDeleted && h.HarvestDate >= start && h.HarvestDate < end).ToListAsync();
 
-        return Ok(new { start, end = end.AddDays(-1), expenses, production, sales, operations, harvests });
+        return Ok(new { start, end = end.AddDays(-1), expenses, production, sales, operations, harvests, totals = new { expensesTotal = expenses.Sum(e => e.Amount) + salaries.Sum(s => s.Amount), salesTotal = sales.Sum(s => s.TotalPrice) + cattleSales.Sum(s => s.SalePrice), productionCount = production.Count, harvestKg = harvests.Sum(h => h.TotalWeightKg) } });
     }
 
     [HttpGet("general")]
-    [Authorize(Roles = "Founder")]
+    [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> General()
     {
         var cattle = await _db.Cattle.Where(c => !c.IsDeleted).ToListAsync();
