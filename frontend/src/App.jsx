@@ -16,6 +16,7 @@ import MonthlyReportPage from './pages/founder/MonthlyReportPage'
 import YearlyReportPage from './pages/founder/YearlyReportPage'
 import GeneralReportsPage from './pages/founder/GeneralReportsPage'
 import AuditLogsPage from './pages/founder/AuditLogsPage'
+import OperationsPage from './pages/founder/OperationsPage'
 import DetailView from './pages/founder/DetailView'
 import ManagerDashboard from './pages/manager/ManagerDashboard'
 import DailyOperationsPage from './pages/manager/DailyOperationsPage'
@@ -113,6 +114,7 @@ function AppContent()
                         <Route path="/founder/reports/:id" element={<WeeklyReportDetail />} />
                         <Route path="/founder/details/:type/:id" element={<DetailView />} />
                         <Route path="/founder/audit-logs" element={<AuditLogsPage />} />
+                        <Route path="/founder/operations" element={<OperationsPage />} />
                     </Route>
                 )}
 

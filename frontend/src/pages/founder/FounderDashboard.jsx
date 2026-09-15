@@ -36,11 +36,6 @@ export default function FounderDashboard()
         queryFn: () => apiClient.get('/cattle').then(r => r.data).catch(() => [])
     })
 
-    const { data: dailyOperations = [], isLoading: operationsLoading, refetch: refetchDailyOperations } = useQuery({
-        queryKey: ['all-daily-operations'],
-        queryFn: () => apiClient.get('/daily-operations').then(r => r.data || []).catch(() => [])
-    })
-
     const { data: palmHarvests = [], isLoading: palmHarvestsLoading, refetch: refetchPalmHarvests } = useQuery({
         queryKey: ['all-palm-harvests'],
         queryFn: () => apiClient.get('/palm-harvests').then(r => r.data || []).catch(() => [])
@@ -76,12 +71,6 @@ export default function FounderDashboard()
     const todayExpenses = expenses.filter(e => new Date(e.date).setHours(0, 0, 0, 0) === today.getTime())
     const todayProduction = production.filter(p => new Date(p.date).setHours(0, 0, 0, 0) === today.getTime())
     const todaySales = sales.filter(s => new Date(s.saleDate).setHours(0, 0, 0, 0) === today.getTime())
-    const todayOperations = dailyOperations.filter(o =>
-    {
-        const rowDate = new Date(o.date)
-        return rowDate && rowDate.setHours(0, 0, 0, 0) === today.getTime()
-    })
-
     const todayHarvests = palmHarvests.filter(h =>
     {
         const rowDate = new Date(h.harvestDate)
@@ -265,59 +254,6 @@ export default function FounderDashboard()
                     )}
                 </div>
 
-                {/* Today's Daily Operations */}
-                <div className="card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Operations</h2>
-                    {todayOperations.length === 0 ? (
-                        <p className="text-gray-600 text-sm">No daily operations recorded today</p>
-                    ) : (
-                        <div className="space-y-2">
-                            {todayOperations.map(op => (
-                                <div key={op.id} className="flex items-start gap-2 p-2 bg-white rounded border border-purple-200">
-                                    <div className="flex-1">
-                                        <p className="font-semibold text-gray-900">{op.operationType}</p>
-                                        <p className="text-xs text-gray-600">{op.description || 'No details'}</p>
-                                        <p className="text-xs text-gray-500 mt-1">By: {op.performedBy || 'Manager'}</p>
-                                    </div>
-                                </div>
-                            ))}
-                            <div className="border-t pt-2 mt-2">
-                                <p className="text-sm font-semibold text-purple-900">
-                                    Total Operations: {todayOperations.length}
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <div className="card lg:col-span-2">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-gray-900">All Operations</h2>
-                        <span className="text-sm text-gray-500">{dailyOperations.length} records</span>
-                    </div>
-                    {dailyOperations.length === 0 ? (
-                        <p className="text-gray-500 text-sm">No operations recorded.</p>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead className="border-b border-gray-200 text-left text-gray-600">
-                                    <tr><th className="py-2 pr-4">Date</th><th className="py-2 pr-4">Operation</th><th className="py-2 pr-4">Details</th><th className="py-2">Performed by</th></tr>
-                                </thead>
-                                <tbody>
-                                    {[...dailyOperations].sort((a, b) => new Date(b.date) - new Date(a.date)).map(operation => (
-                                        <tr key={operation.id} className="border-b border-gray-100 align-top">
-                                            <td className="py-3 pr-4 whitespace-nowrap">{formatDate(operation.date)}</td>
-                                            <td className="py-3 pr-4 font-semibold">{operation.operationType}</td>
-                                            <td className="py-3 pr-4 text-gray-600">{operation.description || 'No details provided.'}{operation.plantationId ? ` • Plantation ${operation.plantationId}` : ''}{operation.palmBlockId ? ` • Block ${operation.palmBlockId}` : ''}</td>
-                                            <td className="py-3 text-gray-600">{operation.performedBy || 'Manager'}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-
                 {/* System Stats */}
                 <div className="card">
                     <h2 className="text-xl font-bold text-gray-900 mb-4">System Statistics</h2>
@@ -337,10 +273,6 @@ export default function FounderDashboard()
                         <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
                             <span className="text-gray-700">Cattle in System</span>
                             <span className="font-bold">{cattle.length}</span>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-purple-50 rounded border border-purple-200">
-                            <span className="text-gray-700 font-semibold">Daily Operations</span>
-                            <span className="font-bold text-purple-600">{dailyOperations.length}</span>
                         </div>
                         <div className="flex justify-between items-center p-2 bg-blue-50 rounded border border-blue-200">
                             <span className="text-gray-700 font-semibold">Production Entries</span>

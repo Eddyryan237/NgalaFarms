@@ -35,6 +35,7 @@ public class NgalaFarmsDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<WeeklyReport> WeeklyReports => Set<WeeklyReport>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<DailyOperation> DailyOperations => Set<DailyOperation>();
+    public DbSet<GeneralActivityReport> GeneralActivityReports => Set<GeneralActivityReport>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -57,6 +58,7 @@ public class NgalaFarmsDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Sheep>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Notification>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<DailyOperation>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<GeneralActivityReport>().HasQueryFilter(e => !e.IsDeleted);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
