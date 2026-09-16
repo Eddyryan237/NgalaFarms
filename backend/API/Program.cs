@@ -47,6 +47,8 @@ builder.Services.AddCors(options =>
         "http://localhost:5173",
         "http://localhost:3000",
         "http://localhost:5174",
+        "https://ngalafarms-2-xoyo.onrender.com",
+        "https://ngala-farms-app.onrender.com",
         renderFrontendUrl
     }
     .Where(origin => !string.IsNullOrWhiteSpace(origin))

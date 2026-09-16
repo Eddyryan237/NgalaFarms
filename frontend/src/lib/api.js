@@ -1,8 +1,10 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
 
-// Use the Vite proxy locally and the Render API URL in production.
-const API_BASE = import.meta.env.VITE_API_URL || '/api'
+// Use the Vite proxy locally and the hosted API directly in production.
+const API_BASE = import.meta.env.VITE_API_URL || (
+  import.meta.env.PROD ? 'https://ngalafarms-2.onrender.com/api' : '/api'
+)
 
 const apiClient = axios.create({
   baseURL: API_BASE,
