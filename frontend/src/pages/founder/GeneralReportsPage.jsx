@@ -29,7 +29,13 @@ export default function GeneralReportsPage()
             setReport('')
             showToast('General report submitted successfully.', 'success')
         },
-        onError: error => showToast(error.response?.data?.message || 'Unable to submit report.', 'error')
+        onError: error => showToast(
+            error.response?.data?.message ||
+            (error.response?.status === 403 ? 'You are not authorized to submit reports.' : null) ||
+            (error.response?.status === 401 ? 'Your session has expired. Please sign in again.' : null) ||
+            'Unable to submit report.',
+            'error'
+        )
     })
 
     const handleSubmit = event => {

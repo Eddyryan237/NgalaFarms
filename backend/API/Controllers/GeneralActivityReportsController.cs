@@ -27,7 +27,7 @@ public class GeneralActivityReportsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Founder,Manager")]
     public async Task<IActionResult> Create([FromBody] GeneralActivityReport report)
     {
         if (report == null || !Categories.Contains(report.Category, StringComparer.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(report.Report))
