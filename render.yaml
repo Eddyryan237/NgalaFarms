@@ -15,12 +15,17 @@ services:
         value: "true"
       - key: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE
         value: "false"
+      - key: FRONTEND_URL
+        value: https://ngalafarms-2-xoyo.onrender.com
 
   - type: static_site
     name: ngalafarms-frontend
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://ngalafarms-2.onrender.com/api
     routes:
       - type: rewrite
         source: /*
