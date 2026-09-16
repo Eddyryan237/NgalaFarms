@@ -10,7 +10,6 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(NgalaFarmsDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
     {
-        await context.Database.MigrateAsync();
         await context.Database.ExecuteSqlRawAsync("""
             DO $$
             BEGIN

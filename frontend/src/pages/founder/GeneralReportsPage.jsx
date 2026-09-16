@@ -33,6 +33,7 @@ export default function GeneralReportsPage()
             error.response?.data?.message ||
             (error.response?.status === 403 ? 'You are not authorized to submit reports.' : null) ||
             (error.response?.status === 401 ? 'Your session has expired. Please sign in again.' : null) ||
+            (!error.response ? 'The server is unavailable. Start the API and database, then try again.' : null) ||
             'Unable to submit report.',
             'error'
         )
