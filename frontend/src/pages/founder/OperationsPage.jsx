@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { Calendar } from 'lucide-react'
+import { Calendar, Share2 } from 'lucide-react'
 import apiClient from '../../lib/api'
+import { shareOperationsOnWhatsApp } from '../../utils/operationSharing'
 
 export default function OperationsPage()
 {
@@ -30,7 +31,8 @@ export default function OperationsPage()
                                 <th className="py-3 pr-4">Operation</th>
                                 <th className="py-3 pr-4">Details</th>
                                 <th className="py-3 pr-4">Performed by</th>
-                                <th className="py-3">Plantation / Block</th>
+                                <th className="py-3 pr-4">Plantation / Block</th>
+                                <th className="py-3">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -42,7 +44,16 @@ export default function OperationsPage()
                                     <td className="py-3 pr-4 font-semibold text-gray-900">{operation.operationType}</td>
                                     <td className="py-3 pr-4 text-gray-600 whitespace-pre-wrap">{operation.description || 'No details provided.'}</td>
                                     <td className="py-3 pr-4 text-gray-600">{operation.performedBy || 'Manager'}</td>
-                                    <td className="py-3 text-gray-600">{operation.plantationId || '-'}{operation.palmBlockId ? ` / ${operation.palmBlockId}` : ''}</td>
+                                    <td className="py-3 pr-4 text-gray-600">{operation.plantationId || '-'}{operation.palmBlockId ? ` / ${operation.palmBlockId}` : ''}</td>
+                                    <td className="py-3">
+                                        <button
+                                            onClick={() => shareOperationsOnWhatsApp([operation], 'Ngala Farms operation')}
+                                            className="text-green-700 hover:text-green-900 transition"
+                                            title="Share operation on WhatsApp"
+                                        >
+                                            <Share2 size={18} />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

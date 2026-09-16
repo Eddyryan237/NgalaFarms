@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Calendar } from 'lucide-react'
+import { Plus, Trash2, Calendar, Share2 } from 'lucide-react'
 import apiClient from '../../lib/api'
 import { useToast } from '../../hooks/useToast'
+import { shareOperationsOnWhatsApp } from '../../utils/operationSharing'
 
 const OPERATION_TYPES = [
     'Clearing',
@@ -60,12 +61,12 @@ export default function DailyOperationsPage()
         mutationFn: (data) => editingId
             ? apiClient.put(`/daily-operations/${editingId}`, data)
             : apiClient.post('/daily-operations', data),
-        onSuccess: () =>
+        onSuccess: (response) =>
         {
             invalidateDailyOperations()
             setShowForm(false)
             setEditingId(null)
-            setSelectedOperation(null)
+            setSelectedOperation(response.data)
             setFormData({
                 operationType: [],
                 description: '',
@@ -149,6 +150,16 @@ export default function DailyOperationsPage()
         ? operations
         : operations.filter(op => (op.operationType || '').split(',').map(type => type.trim()).includes(filter))
 
+    const todaysOperations = operations.filter(op => new Date(op.date).toDateString() === new Date().toDateString())
+
+    const shareOperations = (items, heading) =>
+    {
+        if (!shareOperationsOnWhatsApp(items, heading))
+        {
+            showToast('There are no operations to share.', 'error')
+        }
+    }
+
     const operationStats = {
         total: operations.length,
         today: operations.filter(op =>
@@ -166,24 +177,34 @@ export default function DailyOperationsPage()
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Daily Operations</h1>
-                <button
-                    onClick={() =>
-                    {
-                        setSelectedOperation(null)
-                        setEditingId(null)
-                        setShowForm(!showForm)
-                        if (showForm)
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        onClick={() => shareOperations(todaysOperations, `Ngala Farms operations for ${new Date().toLocaleDateString()}`)}
+                        disabled={todaysOperations.length === 0}
+                        className="flex items-center gap-2 bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition disabled:opacity-50"
+                    >
+                        <Share2 size={18} />
+                        Share today on WhatsApp
+                    </button>
+                    <button
+                        onClick={() =>
                         {
-                            resetForm()
-                        }
-                    }}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                >
-                    <Plus size={20} />
-                    {showForm ? 'Close Form' : 'Record Operation'}
-                </button>
+                            setSelectedOperation(null)
+                            setEditingId(null)
+                            setShowForm(!showForm)
+                            if (showForm)
+                            {
+                                resetForm()
+                            }
+                        }}
+                        className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                    >
+                        <Plus size={20} />
+                        {showForm ? 'Close Form' : 'Record Operation'}
+                    </button>
+                </div>
             </div>
 
             {/* Stats Cards */}
@@ -390,6 +411,13 @@ export default function DailyOperationsPage()
                                                 Edit
                                             </button>
                                             <button
+                                                onClick={() => shareOperations([op], 'Ngala Farms operation')}
+                                                className="text-green-700 hover:text-green-900 transition"
+                                                title="Share operation on WhatsApp"
+                                            >
+                                                <Share2 size={18} />
+                                            </button>
+                                            <button
                                                 onClick={() => deleteMutation.mutate(op.id)}
                                                 disabled={deleteMutation.isPending}
                                                 className="text-red-600 hover:text-red-800 transition disabled:opacity-50"
@@ -414,6 +442,13 @@ export default function DailyOperationsPage()
                             <h3 className="text-xl font-bold text-gray-900">{selectedOperation.operationType}</h3>
                         </div>
                         <div className="flex gap-2">
+                            <button
+                                onClick={() => shareOperations([selectedOperation], 'Ngala Farms operation')}
+                                className="px-3 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition flex items-center gap-2"
+                            >
+                                <Share2 size={16} />
+                                WhatsApp
+                            </button>
                             <button
                                 onClick={() => startEdit(selectedOperation)}
                                 className="px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition"

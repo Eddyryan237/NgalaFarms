@@ -13,9 +13,13 @@ export default function GeneralReportsPage()
     const [report, setReport] = useState('')
     const [reportDate, setReportDate] = useState(new Date().toISOString().split('T')[0])
 
-    const { data: reports = [], isLoading } = useQuery({
+    const { data: reports = [], isLoading, isError } = useQuery({
         queryKey: ['general-activity-reports'],
-        queryFn: () => apiClient.get('/general-activity-reports').then(response => response.data || [])
+        queryFn: () => apiClient.get('/general-activity-reports').then(response =>
+        {
+            const payload = response.data
+            return Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : [])
+        })
     })
 
     const saveMutation = useMutation({
@@ -73,6 +77,7 @@ export default function GeneralReportsPage()
             <section className="card">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Submitted Reports</h2>
                 {isLoading && <p className="text-gray-500">Loading reports...</p>}
+                {isError && <p className="text-red-600">Unable to load general reports.</p>}
                 {!isLoading && reports.length === 0 && <p className="text-gray-500">No general reports submitted yet.</p>}
                 <div className="space-y-3">
                     {reports.map(item => (
