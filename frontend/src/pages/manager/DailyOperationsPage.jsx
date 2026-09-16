@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Calendar, Share2 } from 'lucide-react'
+import { Plus, Calendar, Share2 } from 'lucide-react'
 import apiClient from '../../lib/api'
 import { useToast } from '../../hooks/useToast'
 import { shareOperationsOnWhatsApp } from '../../utils/operationSharing'
@@ -80,20 +80,6 @@ export default function DailyOperationsPage()
         onError: (err) =>
         {
             showToast(err.response?.data?.message || (editingId ? 'Failed to update operation' : 'Failed to record operation'), 'error')
-        }
-    })
-
-    // Delete operation mutation
-    const deleteMutation = useMutation({
-        mutationFn: (id) => apiClient.delete(`/daily-operations/${id}`),
-        onSuccess: () =>
-        {
-            invalidateDailyOperations()
-            showToast('Operation deleted successfully!', 'success')
-        },
-        onError: (err) =>
-        {
-            showToast(err.response?.data?.message || 'Failed to delete operation', 'error')
         }
     })
 
@@ -416,14 +402,6 @@ export default function DailyOperationsPage()
                                                 title="Share operation on WhatsApp"
                                             >
                                                 <Share2 size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => deleteMutation.mutate(op.id)}
-                                                disabled={deleteMutation.isPending}
-                                                className="text-red-600 hover:text-red-800 transition disabled:opacity-50"
-                                                title="Delete operation"
-                                            >
-                                                <Trash2 size={18} />
                                             </button>
                                         </div>
                                     </td>
